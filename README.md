@@ -186,3 +186,6 @@ http://localhost:[port]/swagger-ui/index.html
 - Secure all database credentials and API keys
 - Use HTTPS in production environments
 - Regularly update dependencies and apply security patches
+
+
+<!-- Optimize performance -->
