@@ -61,3 +61,6 @@ All endpoints except health checks require JWT authentication. The JWT token sho
 
 
 <!-- Update documentation -->
+
+
+<!-- Enhance readability -->
