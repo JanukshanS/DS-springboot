@@ -192,3 +192,6 @@ http://localhost:[port]/swagger-ui/index.html
 
 
 <!-- Enhance readability -->
+
+
+<!-- Refactor structure -->
