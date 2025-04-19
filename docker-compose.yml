@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+
+  discovery-server:
+    build: ./services/discovery
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - food-delivery-network
+
+  gateway-service:
+    build: ./services/gateway
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - REDIS_HOST=localhost
+      - REDIS_PORT=6379
+      - JWT_SECRET=foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF
+      - JWT_EXPIRATION=86400000
+    networks:
+      - food-delivery-network
+
+  user-service:
+    build: ./services/user_service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.lebinrutevacnawumxjg.supabase.co:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${USER_DB_PASSWORD}
+      - JWT_SECRET=foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF
+      - JWT_EXPIRATION=86400000
+    networks:
+      - food-delivery-network
+
+  restaurant-service:
+    build: ./services/restaurant_service
+    container_name: restaurant-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.npkdihumxaljttrlpbkh.supabase.co:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${RESTAURANT_DB_PASSWORD}
+      - JWT_SECRET=foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF
+      - JWT_EXPIRATION=86400000
+    networks:
+      - food-delivery-network
+
+  order-service:
+    build: ./services/order_service
+    container_name: order-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.czczqgoagsqzsgmueyib.supabase.co:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${ORDER_DB_PASSWORD}
+      - JWT_SECRET=foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF
+      - JWT_EXPIRATION=86400000
+    networks:
+      - food-delivery-network
+
+  payment-service:
+    build: ./services/payment_service
+    container_name: payment-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.auapwbaogrojpibrcwcy.supabase.co:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${PAYMENT_DB_PASSWORD}
+      - STRIPE_WEBHOOK_SECRET=whsec_test_123456789
+      - JWT_SECRET=foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF
+      - JWT_EXPIRATION=86400000
+    networks:
+      - food-delivery-network
+
+  delivery-service:
+    build: ./services/delivery_service
+    container_name: delivery-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.tksendfgqpufbbynpioy.supabase.co:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${DELIVERY_DB_PASSWORD}
+      - JWT_SECRET=foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF
+      - JWT_EXPIRATION=86400000
+    networks:
+      - food-delivery-network
+
+  notification-service:
+    build: ./services/notification_service
+    container_name: notification-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db.auapwbaogrojpibrcwcy.supabase.co:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${NOTIFICATION_DB_PASSWORD}
+      - JWT_SECRET=foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF
+      - JWT_EXPIRATION=86400000
+    networks:
+      - food-delivery-network
+
+  frontend:
+    build: ./frontend-v1
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway-service
+    networks:
+      - food-delivery-network
+
+networks:
+  food-delivery-network:
+    driver: bridge
