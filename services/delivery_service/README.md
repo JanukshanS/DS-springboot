@@ -94,3 +94,5 @@ The Delivery Service integrates with:
 - User Service for authentication
 - Order Service for order information
 - Notification Service for delivery status updates
+
+<!-- Improve formatting -->
