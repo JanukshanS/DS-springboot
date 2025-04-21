@@ -218,3 +218,6 @@ food-delivery-platform/
    - Docker containerization
    - Automated testing in CI pipeline
 
+
+
+<!-- Refactor structure -->
