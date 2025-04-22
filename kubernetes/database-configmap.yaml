@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-config
+  namespace: food-delivery
+data:
+  # User Service Database
+  USER_DB_URL: "jdbc:postgresql://db.lebinrutevacnawumxjg.supabase.co:5432/postgres"
+  USER_DB_USERNAME: "postgres"
+  USER_DB_DRIVER: "org.postgresql.Driver"
+  
+  # Restaurant Service Database
+  RESTAURANT_DB_URL: "jdbc:postgresql://db.npkdihumxaljttrlpbkh.supabase.co:5432/postgres"
+  RESTAURANT_DB_USERNAME: "postgres"
+  RESTAURANT_DB_DRIVER: "org.postgresql.Driver"
+  
+  # Order Service Database
+  ORDER_DB_URL: "jdbc:postgresql://db.czczqgoagsqzsgmueyib.supabase.co:5432/postgres"
+  ORDER_DB_USERNAME: "postgres"
+  ORDER_DB_DRIVER: "org.postgresql.Driver"
+  
+  # Payment Service Database
+  PAYMENT_DB_URL: "jdbc:postgresql://db.auapwbaogrojpibrcwcy.supabase.co:5432/postgres"
+  PAYMENT_DB_USERNAME: "postgres"
+  PAYMENT_DB_DRIVER: "org.postgresql.Driver"
+  STRIPE_WEBHOOK_SECRET: "whsec_test_123456789"
+  
+  # Delivery Service Database
+  DELIVERY_DB_URL: "jdbc:postgresql://db.tksendfgqpufbbynpioy.supabase.co:5432/postgres"
+  DELIVERY_DB_USERNAME: "postgres"
+  DELIVERY_DB_DRIVER: "org.postgresql.Driver"
+  
+  # Notification Service Database
+  NOTIFICATION_DB_URL: "jdbc:postgresql://db.auapwbaogrojpibrcwcy.supabase.co:5432/postgres"
+  NOTIFICATION_DB_USERNAME: "postgres"
+  NOTIFICATION_DB_DRIVER: "org.postgresql.Driver"
+  
+  # Gateway Service (No Database, but has Redis config)
+  REDIS_HOST: "localhost"
+  REDIS_PORT: "6379"
+  
+  # JWT Configuration (shared across services)
+  JWT_SECRET: "foodDeliveryPlatformSecretKey2025XYZ123456789ABCDEF"
+  JWT_EXPIRATION: "86400000"

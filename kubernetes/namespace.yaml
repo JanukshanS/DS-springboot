@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: food-delivery
+  labels:
+    name: food-delivery
+
+# Code cleanup
+
+# Add details
+
+# Enhance readability
+
+# Code cleanup
