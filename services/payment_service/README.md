@@ -101,3 +101,6 @@ The following environment variables should be configured:
 - `stripe.webhook.secret` - Stripe webhook signing secret
 
 <!-- Code cleanup -->
+
+
+<!-- Optimize performance -->
