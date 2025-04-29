@@ -1,0 +1,74 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-DeliveryServiceApplication<delivery_service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.delivery.delivery_service.DeliveryServiceApplication",
+      "projectName": "delivery_service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-GatewayApplication<gateway>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.gateway.gateway.GatewayApplication",
+      "projectName": "gateway",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-NotificationServiceApplication<notification_service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.notification.notification_service.NotificationServiceApplication",
+      "projectName": "notification_service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-OrderServiceApplication<order_service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.order.order_service.OrderServiceApplication",
+      "projectName": "order_service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-PaymentServiceApplication<payment_service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.payment.payment_service.PaymentServiceApplication",
+      "projectName": "payment_service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-RestaurantServiceApplication<restaurant_service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.restaurant.restaurant_service.RestaurantServiceApplication",
+      "projectName": "restaurant_service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-UserServiceApplication<user_service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.user.user_service.UserServiceApplication",
+      "projectName": "user_service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

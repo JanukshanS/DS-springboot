@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap');
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  src: url('./assets/fonts/CabinetGrotesk-Black.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  src: url('./assets/fonts/CabinetGrotesk-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Scrollbar container */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Scrollbar track */
+::-webkit-scrollbar-track {
+  background: #201d1d;
+  border-radius: 10px;
+}
+
+/* Scrollbar thumb */
+::-webkit-scrollbar-thumb {
+  background-color: #3a2d2d;
+  border-radius: 10px;
+  border: none; /* Adds padding around thumb */
+}
+
+/* Scrollbar thumb on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
