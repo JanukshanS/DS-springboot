@@ -7,6 +7,7 @@ import Button from '../common/Button';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown
   const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
   const { items } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
@@ -21,6 +22,10 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen); // Toggle dropdown visibility
   };
 
   const handleLogout = () => {
@@ -88,47 +93,49 @@ const Navbar = () => {
           </Link>
 
           {isAuthenticated && user ? (
-            <div className="relative group">
-              <button className="flex items-center space-x-1 text-gray-700 group-hover:text-orange-500">
+            <div className="relative">
+              <button
+                onClick={toggleDropdown} // Toggle dropdown on click
+                className="flex items-center space-x-1 text-gray-700"
+              >
                 <FiUser className="w-6 h-6" />
                 <span className="font-cabinet">
-                  {user?.fullName || user?.name || "User"}
+                  {user?.fullName || user?.name || 'User'}
                 </span>
               </button>
 
-              {/* Dropdown menu with better hover behavior */}
-              <div
-                className="absolute right-0 z-10 w-48 mt-2 origin-top-right bg-white rounded-md shadow-lg py-1 
-                invisible opacity-0 group-hover:visible group-hover:opacity-100 
-                transition-all duration-200 ease-in-out"
-                style={{ marginTop: "0.5rem" }}
-              >
-                <div className="absolute -top-2 left-0 right-0 h-2 bg-transparent"></div>
-                <Link
-                  to="/dashboard"
-                  className="block px-4 py-2 text-gray-700 hover:bg-orange-50"
+              {/* Dropdown menu */}
+              {isDropdownOpen && (
+                <div
+                  className="absolute right-0 z-10 w-48 mt-2 origin-top-right bg-white rounded-md shadow-lg py-1"
+                  style={{ marginTop: '0.5rem' }}
                 >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-gray-700 hover:bg-orange-50"
-                >
-                  Profile
-                </Link>
-                <Link
-                  to="/orders"
-                  className="block px-4 py-2 text-gray-700 hover:bg-orange-50"
-                >
-                  Orders
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-orange-50"
-                >
-                  Logout
-                </button>
-              </div>
+                  <Link
+                    to="/dashboard"
+                    className="block px-4 py-2 text-gray-700"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2 text-gray-700"
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    to="/orders"
+                    className="block px-4 py-2 text-gray-700"
+                  >
+                    Orders
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-gray-700"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center space-x-2">
@@ -213,30 +220,30 @@ const Navbar = () => {
                   <div className="flex items-center space-x-2 text-gray-700">
                     <FiUser className="w-6 h-6" />
                     <span className="font-cabinet">
-                      {user?.fullName || user?.name || "User"}
+                      {user?.fullName || user?.name || 'User'}
                     </span>
                   </div>
                   <Link
                     to="/dashboard"
-                    className="block w-full py-2 text-gray-700 hover:bg-orange-50 pl-8"
+                    className="block w-full py-2 text-gray-700 pl-8"
                   >
                     Dashboard
                   </Link>
                   <Link
                     to="/profile"
-                    className="block w-full py-2 text-gray-700 hover:bg-orange-50 pl-8"
+                    className="block w-full py-2 text-gray-700 pl-8"
                   >
                     Profile
                   </Link>
                   <Link
                     to="/orders"
-                    className="block w-full py-2 text-gray-700 hover:bg-orange-50 pl-8"
+                    className="block w-full py-2 text-gray-700 pl-8"
                   >
                     Orders
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left py-2 text-gray-700 hover:bg-orange-50 pl-8"
+                    className="block w-full text-left py-2 text-gray-700 pl-8"
                   >
                     Logout
                   </button>
