@@ -35,3 +35,5 @@ spec:
             name: gateway-service
             port:
               number: 8080
+
+# Fix style issues
