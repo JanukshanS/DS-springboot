@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from "react-redux";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   HomeIcon, 
   UserIcon, 
@@ -15,6 +15,7 @@ import {
   SquaresPlusIcon as TemplateIcon,
   TruckIcon
   } from '@heroicons/react/24/outline';
+import { logout } from "../../store/slices/authSlice";
 import Logo from '../common/Logo';
 
 /**
@@ -25,6 +26,14 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Handle logout action
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
 
   // Get role-specific navigation items
   const getNavItems = () => {
@@ -73,7 +82,7 @@ const DashboardLayout = () => {
           className="fixed inset-0 bg-gray-600 bg-opacity-75"
           onClick={() => setSidebarOpen(false)}
         ></div>
-        
+
         <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
@@ -98,7 +107,7 @@ const DashboardLayout = () => {
               </svg>
             </button>
           </div>
-          
+
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
               <Logo className="h-8 w-auto" />
@@ -131,10 +140,7 @@ const DashboardLayout = () => {
             <Link
               to="/login"
               className="flex-shrink-0 group block"
-              onClick={() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-              }}
+              onClick={handleLogout}
             >
               <div className="flex items-center">
                 <div>
@@ -163,9 +169,9 @@ const DashboardLayout = () => {
               </div>
               <div className="mt-8 px-4">
                 <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {user?.fullName || 'User'}
+                  {user?.fullName || "User"}
                 </h2>
-                <p className="text-sm text-gray-500">{user?.email || ''}</p>
+                <p className="text-sm text-gray-500">{user?.email || ""}</p>
               </div>
               <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
                 {navItems.map((item) => (
@@ -195,10 +201,7 @@ const DashboardLayout = () => {
               <Link
                 to="/login"
                 className="flex-shrink-0 w-full group block"
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('refreshToken');
-                }}
+                onClick={handleLogout}
               >
                 <div className="flex items-center">
                   <div>
@@ -217,7 +220,7 @@ const DashboardLayout = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Main content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
         <div className="md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3">

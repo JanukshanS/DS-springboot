@@ -1,17 +1,22 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiSearch, FiClock, FiBriefcase, FiStar, FiMapPin } from 'react-icons/fi';
-import Layout from '../components/layout/Layout';
-import Button from '../components/common/Button';
-import Features from '../components/home/Features';
-import Testimonials from '../components/home/Testimonials';
-import RestaurantPartner from '../components/home/RestaurantPartner';
+import { useNavigate } from "react-router-dom";
+import {
+  FiSearch,
+  FiClock,
+  FiBriefcase,
+  FiStar,
+  FiMapPin,
+} from "react-icons/fi";
+import Button from "../components/common/Button";
+import Features from "../components/home/Features";
+import Testimonials from "../components/home/Testimonials";
+import RestaurantPartner from "../components/home/RestaurantPartner";
 
 const LandingPage = () => {
   const navigate = useNavigate();
 
   return (
-    <Layout>
+    <>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-orange-500 to-orange-600 py-20">
         <div className="container mx-auto px-6 z-10 relative">
@@ -21,13 +26,23 @@ const LandingPage = () => {
                 Delicious Food Delivered to Your Doorstep
               </h1>
               <p className="text-xl text-white font-cabinet mb-8 max-w-lg">
-                Order from your favorite local restaurants with fast delivery and low fees.
+                Order from your favorite local restaurants with fast delivery
+                and low fees.
               </p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <Button size="lg" className="shadow-lg" onClick={() => navigate('/restaurants')}>
+                <Button
+                  size="lg"
+                  className="shadow-lg"
+                  onClick={() => navigate("menu-items")}
+                >
                   Order Now
                 </Button>
-                <Button variant="outline" size="lg" className="bg-white border-white text-orange-600 hover:bg-orange-50" onClick={() => navigate('/restaurants')}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-white border-white text-orange-600 hover:bg-orange-50"
+                  onClick={() => navigate("/restaurants")}
+                >
                   View Restaurants
                 </Button>
               </div>
@@ -68,7 +83,9 @@ const LandingPage = () => {
                     </div>
                   </div>
                 </div>
-                <Button fullWidth onClick={() => navigate('/restaurants')}>Find Food</Button>
+                <Button fullWidth onClick={() => navigate("/restaurants")}>
+                  Find Food
+                </Button>
               </div>
             </div>
           </div>
@@ -93,9 +110,12 @@ const LandingPage = () => {
               <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl font-bold text-orange-500">1</span>
               </div>
-              <h3 className="text-xl font-cabinet font-bold mb-4">Browse Restaurants</h3>
+              <h3 className="text-xl font-cabinet font-bold mb-4">
+                Browse Restaurants
+              </h3>
               <p className="text-gray-600">
-                Browse through our extensive list of restaurants and cuisines, filter by price, rating, or delivery time.
+                Browse through our extensive list of restaurants and cuisines,
+                filter by price, rating, or delivery time.
               </p>
             </div>
 
@@ -104,9 +124,12 @@ const LandingPage = () => {
               <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl font-bold text-orange-500">2</span>
               </div>
-              <h3 className="text-xl font-cabinet font-bold mb-4">Place Your Order</h3>
+              <h3 className="text-xl font-cabinet font-bold mb-4">
+                Place Your Order
+              </h3>
               <p className="text-gray-600">
-                Select your favorite meals, customize them as needed, and add them to your cart. Checkout with secure payment.
+                Select your favorite meals, customize them as needed, and add
+                them to your cart. Checkout with secure payment.
               </p>
             </div>
 
@@ -115,9 +138,12 @@ const LandingPage = () => {
               <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl font-bold text-orange-500">3</span>
               </div>
-              <h3 className="text-xl font-cabinet font-bold mb-4">Enjoy Your Food</h3>
+              <h3 className="text-xl font-cabinet font-bold mb-4">
+                Enjoy Your Food
+              </h3>
               <p className="text-gray-600">
-                Track your order in real-time and receive it at your doorstep. Enjoy hot and fresh food delivered to you.
+                Track your order in real-time and receive it at your doorstep.
+                Enjoy hot and fresh food delivered to you.
               </p>
             </div>
           </div>
@@ -131,7 +157,9 @@ const LandingPage = () => {
             <h2 className="text-3xl font-rowdies font-bold text-gray-800">
               Popular Categories
             </h2>
-            <Button variant="outline" onClick={() => navigate('/restaurants')}>View All</Button>
+            <Button variant="outline" onClick={() => navigate("/restaurants")}>
+              View All
+            </Button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -193,7 +221,9 @@ const LandingPage = () => {
             <h2 className="text-3xl font-rowdies font-bold text-gray-800">
               Featured Restaurants
             </h2>
-            <Button variant="outline" onClick={() => navigate('/restaurants')}>View All</Button>
+            <Button variant="outline" onClick={() => navigate("/restaurants")}>
+              View All
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -205,7 +235,9 @@ const LandingPage = () => {
                 </div>
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-cabinet font-bold mb-2">Burger King</h3>
+                <h3 className="text-xl font-cabinet font-bold mb-2">
+                  Burger King
+                </h3>
                 <div className="flex items-center text-gray-500 text-sm mb-4">
                   <span className="mr-2">Burgers</span>
                   <span>•</span>
@@ -213,7 +245,9 @@ const LandingPage = () => {
                   <span>•</span>
                   <span className="ml-2">$$</span>
                 </div>
-                <Button variant="outline" fullWidth>View Menu</Button>
+                <Button variant="outline" fullWidth>
+                  View Menu
+                </Button>
               </div>
             </div>
 
@@ -225,7 +259,9 @@ const LandingPage = () => {
                 </div>
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-cabinet font-bold mb-2">Pizza Hut</h3>
+                <h3 className="text-xl font-cabinet font-bold mb-2">
+                  Pizza Hut
+                </h3>
                 <div className="flex items-center text-gray-500 text-sm mb-4">
                   <span className="mr-2">Pizza</span>
                   <span>•</span>
@@ -233,7 +269,9 @@ const LandingPage = () => {
                   <span>•</span>
                   <span className="ml-2">$$</span>
                 </div>
-                <Button variant="outline" fullWidth>View Menu</Button>
+                <Button variant="outline" fullWidth>
+                  View Menu
+                </Button>
               </div>
             </div>
 
@@ -245,7 +283,9 @@ const LandingPage = () => {
                 </div>
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-cabinet font-bold mb-2">Sushi World</h3>
+                <h3 className="text-xl font-cabinet font-bold mb-2">
+                  Sushi World
+                </h3>
                 <div className="flex items-center text-gray-500 text-sm mb-4">
                   <span className="mr-2">Japanese</span>
                   <span>•</span>
@@ -253,7 +293,9 @@ const LandingPage = () => {
                   <span>•</span>
                   <span className="ml-2">$$$</span>
                 </div>
-                <Button variant="outline" fullWidth>View Menu</Button>
+                <Button variant="outline" fullWidth>
+                  View Menu
+                </Button>
               </div>
             </div>
           </div>
@@ -297,7 +339,7 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

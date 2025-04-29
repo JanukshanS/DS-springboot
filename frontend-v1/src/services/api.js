@@ -127,30 +127,81 @@ export const user = {
 
 // Restaurant API methods
 export const restaurant = {
-  getAll: (params) => restaurantService.get(API_CONFIG.restaurant.endpoints.list, { params }),
-  getAllActive: () => restaurantService.get(API_CONFIG.restaurant.endpoints.list),
-  getAllRestaurants: () => restaurantService.get(API_CONFIG.restaurant.endpoints.allRestaurants),
-  getById: (id) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.details, { id })),
+  getAll: (params) =>
+    restaurantService.get(API_CONFIG.restaurant.endpoints.list, { params }),
+  getAllActive: () =>
+    restaurantService.get(API_CONFIG.restaurant.endpoints.list),
+  getAllRestaurants: () =>
+    restaurantService.get(API_CONFIG.restaurant.endpoints.allRestaurants),
+  getById: (id) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.details, { id })
+    ),
 
   // Menu items
-  getMenu: (restaurantId) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.menu, { restaurantId })),
-  getMenuAll: (restaurantId) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.menuAll, { restaurantId })),
-  getMenuByCategory: (restaurantId, category) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.menuByCategory, { restaurantId, category })),
-  getMenuDietary: (restaurantId) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.menuDietary, { restaurantId })),
-  getMenuItem: (id) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.menuItem, { id })),
-  updateMenuItemAvailability: (id, available) => restaurantService.patch(formatUrl(API_CONFIG.restaurant.endpoints.menuItemAvailability, { id }), null, { params: { available } }),
+  getMenu: (restaurantId) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.menu, { restaurantId })
+    ),
+  getMenuAll: (restaurantId) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.menuAll, { restaurantId })
+    ),
+  getMenuByCategory: (restaurantId, category) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.menuByCategory, {
+        restaurantId,
+        category,
+      })
+    ),
+  getMenuDietary: (restaurantId) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.menuDietary, { restaurantId })
+    ),
+  getMenuItem: (id) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.menuItem, { id })
+    ),
+  getAllMenuItems: () =>
+    restaurantService.get(API_CONFIG.restaurant.endpoints.allMenuItems),
+  updateMenuItemAvailability: (id, available) =>
+    restaurantService.patch(
+      formatUrl(API_CONFIG.restaurant.endpoints.menuItemAvailability, { id }),
+      null,
+      { params: { available } }
+    ),
 
   // Cuisine
-  getCuisines: () => restaurantService.get(API_CONFIG.restaurant.endpoints.cuisines),
-  getRestaurantsByCuisine: (cuisineType) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.cuisineType, { cuisineType })),
+  getCuisines: () =>
+    restaurantService.get(API_CONFIG.restaurant.endpoints.cuisines),
+  getRestaurantsByCuisine: (cuisineType) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.cuisineType, { cuisineType })
+    ),
 
   // Reviews
-  getReviews: (restaurantId, params) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.reviews, { restaurantId }), { params }),
-  getReviewsSorted: (restaurantId) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.reviewsSorted, { restaurantId })),
-  getReviewsByRating: (restaurantId, minRating) => restaurantService.get(formatUrl(API_CONFIG.restaurant.endpoints.reviewsByRating, { restaurantId }), { params: { minRating } }),
+  getReviews: (restaurantId, params) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.reviews, { restaurantId }),
+      { params }
+    ),
+  getReviewsSorted: (restaurantId) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.reviewsSorted, { restaurantId })
+    ),
+  getReviewsByRating: (restaurantId, minRating) =>
+    restaurantService.get(
+      formatUrl(API_CONFIG.restaurant.endpoints.reviewsByRating, {
+        restaurantId,
+      }),
+      { params: { minRating } }
+    ),
 
   // Search
-  search: (query) => restaurantService.get(API_CONFIG.restaurant.endpoints.search, { params: { query } }),
+  search: (query) =>
+    restaurantService.get(API_CONFIG.restaurant.endpoints.search, {
+      params: { query },
+    }),
 };
 
 // Order API methods

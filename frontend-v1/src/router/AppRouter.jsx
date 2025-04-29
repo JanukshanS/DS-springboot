@@ -16,6 +16,7 @@ import ForgotPasswordPage from './../pages/ForgotPasswordPage';
 // import ResetPasswordPage from './../pages/ResetPasswordPage';
 import RestaurantsPage from './../pages/RestaurantsPage';
 import RestaurantDetailsPage from './../pages/RestaurantDetailsPage';
+import MenuItemsPage from "./../pages/MenuItemsPage";
 // import AboutPage from './../pages/AboutPage';
 // import ContactPage from './../pages/ContactPage';
 
@@ -65,6 +66,7 @@ const AppRouter = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/restaurants" element={<RestaurantsPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetailsPage />} />
+          <Route path="/menu-items" element={<MenuItemsPage />} />
           {/* <Route path="/about" element={<AboutPage />} /> */}
           {/* <Route path="/contact" element={<ContactPage />} /> */}
         </Route>
@@ -78,11 +80,14 @@ const AppRouter = () => {
         </Route>
 
         {/* Protected Customer Routes */}
-        <Route path="/user" element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }>
+        <Route
+          path="/user"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="profile" element={<ProfilePage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
@@ -93,15 +98,18 @@ const AppRouter = () => {
         </Route>
 
         {/* Protected Restaurant Admin Routes */}
-        <Route path="/restaurant-admin" element={
-          <ProtectedRoute>
-            {user && user.role === 'RESTAURANT_ADMIN' ? (
-              <DashboardLayout />
-            ) : (
-              <Navigate to="/" replace />
-            )}
-          </ProtectedRoute>
-        }>
+        <Route
+          path="/restaurant-admin"
+          element={
+            <ProtectedRoute>
+              {user && user.role === "RESTAURANT_ADMIN" ? (
+                <DashboardLayout />
+              ) : (
+                <Navigate to="/" replace />
+              )}
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<RestaurantDashboard />} />
           <Route path="menu" element={<RestaurantMenu />} />
           <Route path="orders" element={<RestaurantOrders />} />
@@ -109,15 +117,18 @@ const AppRouter = () => {
         </Route>
 
         {/* Protected Delivery Personnel Routes */}
-        <Route path="/delivery" element={
-          <ProtectedRoute>
-            {user && user.role === 'DELIVERY_PERSONNEL' ? (
-              <DashboardLayout />
-            ) : (
-              <Navigate to="/" replace />
-            )}
-          </ProtectedRoute>
-        }>
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute>
+              {user && user.role === "DELIVERY_PERSONNEL" ? (
+                <DashboardLayout />
+              ) : (
+                <Navigate to="/" replace />
+              )}
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<DeliveryDashboard />} />
           <Route path="current-order" element={<DeliveryCurrentOrder />} />
           {/* <Route path="history" element={<DeliveryHistory />} /> */}

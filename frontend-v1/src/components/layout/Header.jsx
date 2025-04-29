@@ -29,9 +29,10 @@ const Header = () => {
 
   // Navigation links based on authentication status
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Restaurants', href: '/restaurants' },
-    { name: 'About', href: '/about' },
+    { name: "Home", href: "/" },
+    { name: "Restaurants", href: "/restaurants" },
+    { name: "Menu Items", href: "/menu-items" },
+    { name: "About", href: "/about" },
   ];
 
   return (
@@ -96,7 +97,9 @@ const Header = () => {
                         <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
                           <UserIcon className="h-5 w-5" />
                         </div>
-                        <span className="ml-1 text-sm text-gray-700">{user?.fullName?.split(' ')[0] || 'User'}</span>
+                        <span className="ml-1 text-sm text-gray-700">
+                          {user?.fullName?.split(" ")[0] || "User"}
+                        </span>
                         <svg
                           className="ml-1 h-5 w-5 text-gray-400 group-hover:text-gray-500"
                           xmlns="http://www.w3.org/2000/svg"
@@ -113,7 +116,7 @@ const Header = () => {
                       </div>
                     </button>
                     <div className="hidden group-hover:block absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      {user?.role === 'RESTAURANT_ADMIN' && (
+                      {user?.role === "RESTAURANT_ADMIN" && (
                         <Link
                           to="/restaurant-admin/dashboard"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -121,7 +124,7 @@ const Header = () => {
                           Restaurant Dashboard
                         </Link>
                       )}
-                      {user?.role === 'DELIVERY_PERSONNEL' && (
+                      {user?.role === "DELIVERY_PERSONNEL" && (
                         <Link
                           to="/delivery/dashboard"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -172,7 +175,7 @@ const Header = () => {
       </div>
 
       {/* Mobile menu */}
-      <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden`}>
+      <div className={`${mobileMenuOpen ? "block" : "hidden"} md:hidden`}>
         <div className="pt-2 pb-3 space-y-1">
           {navLinks.map((link) => (
             <Link
@@ -185,7 +188,7 @@ const Header = () => {
             </Link>
           ))}
         </div>
-        
+
         {/* Mobile user actions */}
         <div className="pt-4 pb-3 border-t border-gray-200">
           {isAuthenticated ? (
@@ -198,10 +201,10 @@ const Header = () => {
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium text-gray-800">
-                    {user?.fullName || 'User'}
+                    {user?.fullName || "User"}
                   </div>
                   <div className="text-sm font-medium text-gray-500">
-                    {user?.email || ''}
+                    {user?.email || ""}
                   </div>
                 </div>
                 <Link
@@ -218,8 +221,8 @@ const Header = () => {
                   )}
                 </Link>
               </div>
-              
-              {user?.role === 'RESTAURANT_ADMIN' && (
+
+              {user?.role === "RESTAURANT_ADMIN" && (
                 <Link
                   to="/restaurant-admin/dashboard"
                   className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-orange-300 hover:text-gray-800"
@@ -228,7 +231,7 @@ const Header = () => {
                   Restaurant Dashboard
                 </Link>
               )}
-              {user?.role === 'DELIVERY_PERSONNEL' && (
+              {user?.role === "DELIVERY_PERSONNEL" && (
                 <Link
                   to="/delivery/dashboard"
                   className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-orange-300 hover:text-gray-800"
