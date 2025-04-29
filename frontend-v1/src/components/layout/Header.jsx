@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import Logo from '../common/Logo';
 import { logout } from '../../store/slices/authSlice';
 import { ShoppingCartIcon, UserIcon, Bars3Icon as MenuIcon, XMarkIcon as XIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
 
 /**
  * Header component for the main layout
@@ -15,6 +14,7 @@ const Header = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const { items } = useSelector((state) => state.cart);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false); // State for dropdown
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -91,31 +91,34 @@ const Header = () => {
 
                 {/* User menu */}
                 <div className="relative ml-3 z-10">
-                  <div className="group relative">
-                    <button className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
-                          <UserIcon className="h-5 w-5" />
-                        </div>
-                        <span className="ml-1 text-sm text-gray-700">
-                          {user?.fullName?.split(" ")[0] || "User"}
-                        </span>
-                        <svg
-                          className="ml-1 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)} // Toggle dropdown on click
+                    className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                  >
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                        <UserIcon className="h-5 w-5" />
                       </div>
-                    </button>
-                    <div className="hidden group-hover:block absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <span className="ml-1 text-sm text-gray-700">
+                        {user?.fullName?.split(" ")[0] || "User"}
+                      </span>
+                      <svg
+                        className="ml-1 h-5 w-5 text-gray-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                       {user?.role === "RESTAURANT_ADMIN" && (
                         <Link
                           to="/restaurant-admin/dashboard"
@@ -151,7 +154,7 @@ const Header = () => {
                         Sign out
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
               </>
             ) : (

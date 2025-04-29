@@ -1,12 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiStar, FiClock } from 'react-icons/fi';
+import { FiStar, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 const RestaurantCard = ({ restaurant }) => {
+  console.log('Restaurant Data:', restaurant.imageUrl);
   // Map API response fields to component expected fields
   const cuisine = restaurant.cuisineType || restaurant.cuisine || 'Various';
   const rating = restaurant.averageRating || restaurant.rating || 4.5;
   const priceLevel = restaurant.priceLevel || 2;
+
+  // Check if the restaurant is active or inactive
+  const isActive = restaurant.isActive;
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:shadow-lg">
@@ -21,6 +25,14 @@ const RestaurantCard = ({ restaurant }) => {
         )}
         <div className="absolute top-4 left-4 bg-orange-500 text-white text-sm py-1 px-3 rounded-full flex items-center">
           <FiStar className="mr-1" /> {rating}
+        </div>
+        {/* Availability Icon */}
+        <div className="absolute top-4 right-4 flex items-center">
+          {isActive ? (
+            <FiCheckCircle className="text-green-500" size={24} />
+          ) : (
+            <FiXCircle className="text-red-500" size={24} />
+          )}
         </div>
       </div>
       <div className="p-6">
