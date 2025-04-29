@@ -84,6 +84,7 @@ const API_CONFIG = {
       update: "/api/delivery/{id}/status",
       assign: "/api/delivery/assign",
       available: "/api/delivery/available",
+      myDeliveries: "/api/deliveries/my-deliveries",
     },
   },
   notification: {
