@@ -135,4 +135,11 @@ public class DeliveryController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/all")
+    @Operation(summary = "Get all deliveries", security = @SecurityRequirement(name = "bearerAuth"))
+    //@PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<List<DeliveryResponse>> getAllDeliveries() {
+        List<DeliveryResponse> responses = deliveryService.getAllDeliveries();
+        return ResponseEntity.ok(responses);
+    }
 }

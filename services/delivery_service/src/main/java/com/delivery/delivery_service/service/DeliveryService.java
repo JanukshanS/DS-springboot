@@ -240,4 +240,15 @@ public class DeliveryService {
                 .updatedAt(delivery.getUpdatedAt())
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public List<DeliveryResponse> getAllDeliveries() {
+        log.info("Fetching all deliveries");
+        
+        List<Delivery> deliveries = deliveryRepository.findAll();
+        
+        return deliveries.stream()
+                .map(this::mapToDeliveryResponse)
+                .collect(Collectors.toList());
+    }
 }
