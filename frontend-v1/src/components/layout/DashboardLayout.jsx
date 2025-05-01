@@ -46,10 +46,18 @@ const DashboardLayout = () => {
       ];
     } else if (user?.role === 'DELIVERY_PERSONNEL') {
       return [
-        { name: 'Dashboard', href: '/delivery/dashboard', icon: HomeIcon },
-        { name: 'Current Order', href: '/delivery/current-order', icon: TruckIcon },
-        { name: 'Order History', href: '/delivery/history', icon: ClockIcon },
-        { name: 'Settings', href: '/delivery/settings', icon: CogIcon },
+        { name: "Dashboard", href: "/delivery/dashboard", icon: HomeIcon },
+        {
+          name: "Current Order",
+          href: "/delivery/current-order",
+          icon: TruckIcon,
+        },
+        {
+          name: "Order History",
+          href: "/delivery/order-history",
+          icon: ClockIcon,
+        },
+        { name: "Settings", href: "/delivery/settings", icon: CogIcon },
       ];
     } else {
       // Default to customer role

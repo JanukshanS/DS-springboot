@@ -38,7 +38,7 @@ import RestaurantSettings from './../pages/restaurant/SettingsPage';
 // Protected Delivery Personnel Pages
 import DeliveryDashboard from './../pages/delivery/DashboardPage';
 import DeliveryCurrentOrder from './../pages/delivery/CurrentOrderPage';
-// import DeliveryHistory from './../pages/delivery/HistoryPage';
+import DeliveryOrderHistory from "./../pages/delivery/OrderHistoryPage";
 // import DeliverySettings from './../pages/delivery/SettingsPage';
 
 // Protected Route Component
@@ -131,7 +131,7 @@ const AppRouter = () => {
         >
           <Route path="dashboard" element={<DeliveryDashboard />} />
           <Route path="current-order" element={<DeliveryCurrentOrder />} />
-          {/* <Route path="history" element={<DeliveryHistory />} /> */}
+          <Route path="order-history" element={<DeliveryOrderHistory />} />
           {/* <Route path="settings" element={<DeliverySettings />} /> */}
         </Route>
 
