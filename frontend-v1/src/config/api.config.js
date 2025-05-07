@@ -41,6 +41,9 @@ const API_CONFIG = {
     endpoints: {
       list: "/api/restaurants",
       details: "/api/restaurants/{id}",
+      createRestaurant: "/api/restaurants", // Added missing endpoint for creating restaurant
+      updateRestaurant: "/api/restaurants/{id}", // Added missing endpoint for updating restaurant
+      deleteRestaurant: "/api/restaurants/{id}", // Added missing endpoint for deleting restaurant
       menu: "/api/menu-items/restaurant/{restaurantId}",
       menuAll: "/api/menu-items/restaurant/{restaurantId}/all",
       menuByCategory:
@@ -49,6 +52,10 @@ const API_CONFIG = {
       menuItem: "/api/menu-items/{id}",
       menuItemAvailability: "/api/menu-items/{id}/availability",
       allMenuItems: "/api/menu-items",
+      // Add missing endpoints for CRUD operations on menu items
+      createMenuItem: "/api/menu-items", // POST to this endpoint
+      updateMenuItem: "/api/menu-items/{id}", // PUT to this endpoint
+      deleteMenuItem: "/api/menu-items/{id}", // DELETE from this endpoint
       allRestaurants: "/api/restaurants/all",
       cuisines: "/api/restaurants/cuisines",
       cuisineType: "/api/restaurants/cuisine/{cuisineType}",

@@ -64,6 +64,53 @@ export const fetchRestaurantDetails = createAsyncThunk(
   }
 );
 
+// Async thunk for creating a menu item
+export const createMenuItem = createAsyncThunk(
+  'restaurants/createMenuItem',
+  async ({ restaurantId, menuItemData }, { rejectWithValue }) => {
+    try {
+      // Ensure data includes the restaurant ID if needed by the backend
+      const dataToSend = { ...menuItemData, restaurantId }; 
+      const response = await restaurantService.createMenuItem(dataToSend);
+      return response.data; // Return the newly created menu item
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to create menu item.'
+      );
+    }
+  }
+);
+
+// Async thunk for updating a menu item
+export const updateMenuItem = createAsyncThunk(
+  'restaurants/updateMenuItem',
+  async ({ id, menuItemData }, { rejectWithValue }) => {
+    try {
+      const response = await restaurantService.updateMenuItem(id, menuItemData);
+      return response.data; // Return the updated menu item
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update menu item.'
+      );
+    }
+  }
+);
+
+// Async thunk for deleting a menu item
+export const deleteMenuItem = createAsyncThunk(
+  'restaurants/deleteMenuItem',
+  async (id, { rejectWithValue }) => {
+    try {
+      await restaurantService.deleteMenuItem(id);
+      return id; // Return the ID of the deleted item
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to delete menu item.'
+      );
+    }
+  }
+);
+
 // Initial state
 const initialState = {
   restaurants: [],
@@ -146,6 +193,65 @@ const restaurantSlice = createSlice({
       .addCase(fetchRestaurantDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Something went wrong';
+      })
+
+      // Create Menu Item
+      .addCase(createMenuItem.pending, (state) => {
+        state.loading = true; // Or a specific loading state like state.menuItemLoading = true
+        state.error = null;
+      })
+      .addCase(createMenuItem.fulfilled, (state, action) => {
+        state.loading = false;
+        // Add the new menu item to the current restaurant's menu if loaded
+        if (state.currentRestaurant && state.currentRestaurant.menuItems) {
+          state.currentRestaurant.menuItems.push(action.payload);
+        }
+        // Optionally, you might want to add it to a general menu item list if you have one
+      })
+      .addCase(createMenuItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to create menu item';
+      })
+
+      // Update Menu Item
+      .addCase(updateMenuItem.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateMenuItem.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the menu item in the current restaurant's menu if loaded
+        if (state.currentRestaurant && state.currentRestaurant.menuItems) {
+          const index = state.currentRestaurant.menuItems.findIndex(
+            (item) => item.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.currentRestaurant.menuItems[index] = action.payload;
+          }
+        }
+      })
+      .addCase(updateMenuItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update menu item';
+      })
+
+      // Delete Menu Item
+      .addCase(deleteMenuItem.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteMenuItem.fulfilled, (state, action) => {
+        state.loading = false;
+        // Remove the menu item from the current restaurant's menu if loaded
+        if (state.currentRestaurant && state.currentRestaurant.menuItems) {
+          state.currentRestaurant.menuItems = state.currentRestaurant.menuItems.filter(
+            (item) => item.id !== action.payload // action.payload is the ID
+          );
+        }
+      })
+      .addCase(deleteMenuItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to delete menu item';
       });
   },
 });
