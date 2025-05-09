@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { 
-  HomeIcon, 
-  UserIcon, 
-  ShoppingCartIcon, 
-  ClockIcon, 
+import {
+  HomeIcon,
+  UserIcon,
+  ShoppingCartIcon,
+  ClockIcon,
   CogIcon,
   Bars3Icon as MenuIcon,
   ArrowRightOnRectangleIcon as LogoutIcon,
@@ -13,10 +13,10 @@ import {
   CreditCardIcon,
   ListBulletIcon as ViewListIcon,
   SquaresPlusIcon as TemplateIcon,
-  TruckIcon
-  } from '@heroicons/react/24/outline';
+  TruckIcon,
+} from "@heroicons/react/24/outline";
 import { logout } from "../../store/slices/authSlice";
-import Logo from '../common/Logo';
+import Logo from "../common/Logo";
 
 /**
  * DashboardLayout component for authenticated users
@@ -37,20 +37,33 @@ const DashboardLayout = () => {
 
   // Get role-specific navigation items
   const getNavItems = () => {
-    if (user?.role === 'RESTAURANT_ADMIN') {
+    if (user?.role === "RESTAURANT_ADMIN") {
       return [
-        { name: 'Dashboard', href: '/restaurant-admin/dashboard', icon: HomeIcon },
-        { name: 'Menu Management', href: '/restaurant-admin/menu', icon: ViewListIcon },
-        { name: 'Orders', href: '/restaurant-admin/orders', icon: ClockIcon },
-        { name: 'Settings', href: '/restaurant-admin/settings', icon: CogIcon },
+        {
+          name: "Dashboard",
+          href: "/restaurant-admin/dashboard",
+          icon: HomeIcon,
+        },
+        {
+          name: "Menu Management",
+          href: "/restaurant-admin/menu",
+          icon: ViewListIcon,
+        },
+        { name: "Orders", href: "/restaurant-admin/orders", icon: ClockIcon },
+        { name: "Settings", href: "/restaurant-admin/settings", icon: CogIcon },
       ];
-    } else if (user?.role === 'DELIVERY_PERSONNEL') {
+    } else if (user?.role === "DELIVERY_PERSONNEL") {
       return [
         { name: "Dashboard", href: "/delivery/dashboard", icon: HomeIcon },
         {
           name: "Current Order",
           href: "/delivery/current-order",
           icon: TruckIcon,
+        },
+        {
+          name: "Available Orders",
+          href: "/delivery/available-orders",
+          icon: ClockIcon,
         },
         {
           name: "Order History",
@@ -62,11 +75,19 @@ const DashboardLayout = () => {
     } else {
       // Default to customer role
       return [
-        { name: 'Profile', href: '/user/profile', icon: UserIcon },
-        { name: 'Cart', href: '/user/cart', icon: ShoppingCartIcon },
-        { name: 'Order History', href: '/user/orders', icon: ClockIcon },
-        { name: 'Addresses', href: '/user/addresses', icon: LocationMarkerIcon },
-        { name: 'Payment Methods', href: '/user/payment-methods', icon: CreditCardIcon },
+        { name: "Profile", href: "/user/profile", icon: UserIcon },
+        { name: "Cart", href: "/user/cart", icon: ShoppingCartIcon },
+        { name: "Order History", href: "/user/orders", icon: ClockIcon },
+        {
+          name: "Addresses",
+          href: "/user/addresses",
+          icon: LocationMarkerIcon,
+        },
+        {
+          name: "Payment Methods",
+          href: "/user/payment-methods",
+          icon: CreditCardIcon,
+        },
       ];
     }
   };

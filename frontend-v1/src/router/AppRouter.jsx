@@ -39,17 +39,18 @@ import RestaurantSettings from './../pages/restaurant/SettingsPage';
 import DeliveryDashboard from './../pages/delivery/DashboardPage';
 import DeliveryCurrentOrder from './../pages/delivery/CurrentOrderPage';
 import DeliveryOrderHistory from "./../pages/delivery/OrderHistoryPage";
+import PendingOrdersPage from "./../pages/delivery/PendingOrdersPage";
 // import DeliverySettings from './../pages/delivery/SettingsPage';
 
 // Protected Route Component
-import ProtectedRoute from './../components/common/ProtectedRoute';
+import ProtectedRoute from "./../components/common/ProtectedRoute";
 
 // Not Found Page
 // import NotFoundPage from './../pages/NotFoundPage';
 
 const AppRouter = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // Fetch user profile on mount if authenticated
   useEffect(() => {
@@ -132,6 +133,7 @@ const AppRouter = () => {
           <Route path="dashboard" element={<DeliveryDashboard />} />
           <Route path="current-order" element={<DeliveryCurrentOrder />} />
           <Route path="order-history" element={<DeliveryOrderHistory />} />
+          <Route path="available-orders" element={<PendingOrdersPage />} />
           {/* <Route path="settings" element={<DeliverySettings />} /> */}
         </Route>
 

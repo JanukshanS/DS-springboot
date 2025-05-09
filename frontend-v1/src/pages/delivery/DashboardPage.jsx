@@ -40,7 +40,12 @@ const DashboardPage = () => {
           (delivery) => String(delivery.driverId) === String(driverId)
         );
 
-        const statusFilter = ["delivered", "in_progress", "assigned"];
+        const statusFilter = [
+          "delivered",
+          "in_progress",
+          "assigned",
+          "picked_up",
+        ];
         const filteredDeliveriesByStatus = filteredDeliveries.filter(
           (delivery) => statusFilter.includes(delivery.status.toLowerCase())
         );
@@ -265,7 +270,6 @@ const DashboardPage = () => {
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-
                       {delivery.status
                         ? delivery.status.charAt(0).toUpperCase() +
                           delivery.status.slice(1).replace(/_/g, " ")
