@@ -1,4 +1,4 @@
-//DTO classes for restaurant
+import axios from 'axios';
 
 class Restaurant {
     constructor(id, name, location, cuisine, rating) {
@@ -8,7 +8,6 @@ class Restaurant {
         this.cuisine = cuisine;
         this.rating = rating;
     }
-
 
     getDetails() {
         return `${this.name} is located at ${this.location} and serves ${this.cuisine} cuisine with a rating of ${this.rating}.`;
@@ -23,9 +22,11 @@ class Restaurant {
             json.rating
         );
     }
+
     static fromJsonList(jsonList) {
         return jsonList.map(Restaurant.fromJson);
     }
+
     static toJson(restaurant) {
         return {
             id: restaurant.id,
@@ -35,9 +36,11 @@ class Restaurant {
             rating: restaurant.rating
         };
     }
+
     static toJsonList(restaurantList) {
         return restaurantList.map(Restaurant.toJson);
     }
+
     static fromFormData(formData) {
         return new Restaurant(
             formData.get('id'),
@@ -47,6 +50,7 @@ class Restaurant {
             formData.get('rating')
         );
     }
+
     static toFormData(restaurant) {
         const formData = new FormData();
         formData.append('id', restaurant.id);
@@ -56,6 +60,7 @@ class Restaurant {
         formData.append('rating', restaurant.rating);
         return formData;
     }
+
     static fromRequest(request) {
         return new Restaurant(
             request.id,
@@ -65,6 +70,7 @@ class Restaurant {
             request.rating
         );
     }
+
     static toRequest(restaurant) {
         return {
             id: restaurant.id,
@@ -74,6 +80,7 @@ class Restaurant {
             rating: restaurant.rating
         };
     }
+
     static fromResponse(response) {
         return new Restaurant(
             response.id,
@@ -83,6 +90,7 @@ class Restaurant {
             response.rating
         );
     }
+
     static toResponse(restaurant) {
         return {
             id: restaurant.id,
@@ -92,6 +100,7 @@ class Restaurant {
             rating: restaurant.rating
         };
     }
+
     static fromError(error) {
         return new Restaurant(
             error.id,
@@ -101,6 +110,7 @@ class Restaurant {
             error.rating
         );
     }
+
     static toError(restaurant) {
         return {
             id: restaurant.id,
@@ -110,6 +120,7 @@ class Restaurant {
             rating: restaurant.rating
         };
     }
+
     static fromSuccess(success) {
         return new Restaurant(
             success.id,
@@ -119,6 +130,7 @@ class Restaurant {
             success.rating
         );
     }
+
     static toSuccess(restaurant) {
         return {
             id: restaurant.id,
@@ -128,6 +140,7 @@ class Restaurant {
             rating: restaurant.rating
         };
     }
+
     static fromWarning(warning) {
         return new Restaurant(
             warning.id,
@@ -138,6 +151,18 @@ class Restaurant {
         );
     }
 }
+
+export const createRestaurant = (formData) => {
+  return axios.post('/api/restaurants', Restaurant.toJson(formData));
+};
+
+export const updateRestaurant = (id, data) => {
+  return axios.put(`/api/restaurants/${id}`, Restaurant.toJson(data));
+};
+
+export const deleteRestaurant = (id) => {
+  return axios.delete(`/api/restaurants/${id}`);
+};
 
 export default Restaurant;
 export { Restaurant };

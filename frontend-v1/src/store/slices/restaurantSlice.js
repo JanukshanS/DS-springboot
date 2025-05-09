@@ -18,7 +18,7 @@ export const fetchRestaurants = createAsyncThunk(
 
 export const fetchRestaurantDetails = createAsyncThunk(
   'restaurants/fetchRestaurantDetails',
-  async (id, { rejectWithValue }) => {
+  async ({ id, isDashboard = false }, { rejectWithValue }) => {
     try {
       // Get restaurant details
       const detailsResponse = await restaurantService.getById(id);
@@ -33,7 +33,10 @@ export const fetchRestaurantDetails = createAsyncThunk(
 
       // Try to get menu items - don't fail if this fails
       try {
-        const menuResponse = await restaurantService.getMenu(id);
+        // Use different endpoints for dashboard and regular user views
+        const menuResponse = isDashboard 
+          ? await restaurantService.getMenuAll(id) // Dashboard shows all items including unavailable
+          : await restaurantService.getMenu(id);   // Regular users only see available items
         restaurantData.menuItems = menuResponse.data;
       } catch (menuError) {
         console.warn('Failed to fetch menu items:', menuError);
@@ -69,10 +72,17 @@ export const createMenuItem = createAsyncThunk(
   'restaurants/createMenuItem',
   async ({ restaurantId, menuItemData }, { rejectWithValue }) => {
     try {
-      // Ensure data includes the restaurant ID if needed by the backend
-      const dataToSend = { ...menuItemData, restaurantId }; 
-      const response = await restaurantService.createMenuItem(dataToSend);
-      return response.data; // Return the newly created menu item
+      // Check if menuItemData is FormData
+      if (menuItemData instanceof FormData) {
+        // FormData is already properly set up in the component
+        const response = await restaurantService.createMenuItem(menuItemData);
+        return response.data; // Return the newly created menu item
+      } else {
+        // Handle case where it's a regular object
+        const dataToSend = { ...menuItemData, restaurantId };
+        const response = await restaurantService.createMenuItem(dataToSend);
+        return response.data;
+      }
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to create menu item.'
@@ -86,9 +96,18 @@ export const updateMenuItem = createAsyncThunk(
   'restaurants/updateMenuItem',
   async ({ id, menuItemData }, { rejectWithValue }) => {
     try {
-      const response = await restaurantService.updateMenuItem(id, menuItemData);
-      return response.data; // Return the updated menu item
+      // Check if menuItemData is FormData
+      if (menuItemData instanceof FormData) {
+        // FormData is already properly set up in the component
+        const response = await restaurantService.updateMenuItem(id, menuItemData);
+        return response.data; // Return the updated menu item
+      } else {
+        // Handle case where it's a regular object
+        const response = await restaurantService.updateMenuItem(id, menuItemData);
+        return response.data;
+      }
     } catch (error) {
+      console.error('Error updating menu item:', error);
       return rejectWithValue(
         error.response?.data?.message || 'Failed to update menu item.'
       );
@@ -155,6 +174,9 @@ const restaurantSlice = createSlice({
     },
     clearRestaurant: (state) => {
       state.currentRestaurant = null;
+    },
+    clearError: (state) => {
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -256,5 +278,5 @@ const restaurantSlice = createSlice({
   },
 });
 
-export const { setFilters, clearFilters, setPage, clearRestaurant } = restaurantSlice.actions;
+export const { setFilters, clearFilters, setPage, clearRestaurant, clearError } = restaurantSlice.actions;
 export default restaurantSlice.reducer;

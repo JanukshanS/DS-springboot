@@ -31,10 +31,6 @@ import PaymentMethodsPage from './../pages/user/PaymentMethodsPage';
 
 // Protected Restaurant Admin Pages
 import RestaurantRoutes from "./routes/Restaurant_routes";
-// import RestaurantDashboard from './../pages/restaurant/DashboardPage';
-// import RestaurantMenu from './../pages/restaurant/MenuPage';
-// import RestaurantOrders from './../pages/restaurant/OrdersPage';
-// import RestaurantSettings from './../pages/restaurant/SettingsPage';
 
 // Protected Delivery Personnel Pages
 import DeliveryDashboard from './../pages/delivery/DashboardPage';
@@ -100,7 +96,7 @@ const AppRouter = () => {
 
         {/* Protected Restaurant Admin Routes */}
         <Route
-          path="/restaurant-admin"
+          path="/restaurant-admin/*"
           element={
             <ProtectedRoute>
               {user && user.role === "RESTAURANT_ADMIN" ? (

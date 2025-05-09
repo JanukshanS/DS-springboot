@@ -6,11 +6,19 @@ import RestaurantMenu from '../../pages/restaurant/MenuPage';
 import RestaurantOrders from '../../pages/restaurant/OrdersPage';
 import RestaurantSettings from '../../pages/restaurant/SettingsPage';
 import RestaurantAnalytics from '../../pages/restaurant/AnalyticsPage';
+import RestaurantForm from '../../pages/restaurant/RestaurantForm';
 
 const RestaurantRoutes = () => {
     return (
-        // <RestaurantAdminLayout>
-            <Routes>
+        <Routes>
+            {/* Restaurant management routes */}
+            <Route path='manage'>
+                <Route path='create' element={<RestaurantForm />} />
+                <Route path=':id/edit' element={<RestaurantForm />} />
+            </Route>
+            
+            {/* Restaurant operational routes */}
+            <Route path=':restaurantId'>
                 <Route path='dashboard' element={<RestaurantDashboard />} />
                 <Route path='menu' element={<RestaurantMenu />} />
                 <Route path='menu/categories' element={<RestaurantMenu categoriesView={true} />} />
@@ -18,9 +26,12 @@ const RestaurantRoutes = () => {
                 <Route path='orders' element={<RestaurantOrders />} />
                 <Route path='analytics' element={<RestaurantAnalytics />} />
                 <Route path='settings' element={<RestaurantSettings />} />
-                <Route path='*' element={<RestaurantDashboard />} />
-            </Routes>
-        // </RestaurantAdminLayout>
+                <Route index element={<RestaurantDashboard />} />
+            </Route>
+            
+            {/* Default route */}
+            <Route path='*' element={<RestaurantDashboard />} />
+        </Routes>
     );
 };
 

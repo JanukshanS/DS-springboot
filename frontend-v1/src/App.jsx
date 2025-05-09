@@ -19,7 +19,7 @@ function App() {
 
   return (
     <>
-      {/* <AppRouter /> */}
+      <AppRouter />
       {/* Toast notifications */}
       <Toaster
         position="top-right"
@@ -41,7 +41,7 @@ function App() {
           },
         }}
       />
-      <TestDisplayRestaurants />
+      {/* <TestDisplayRestaurants /> */}
     </>
   );
 }

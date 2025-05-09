@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiImage, FiClock, FiDollarSign, FiCheckCircle } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { FiImage, FiClock, FiDollarSign } from 'react-icons/fi';
 
 const MenuForm = ({
   initialData = null,
@@ -20,6 +19,8 @@ const MenuForm = ({
     preparationTime: 15,
   });
   const [formErrors, setFormErrors] = useState({});
+  const [isNewCategory, setIsNewCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
@@ -53,33 +54,33 @@ const MenuForm = ({
 
   const handleFormChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-
-    if (type === 'file') {
-      const file = files[0];
-      setFormData({
-        ...formData,
-        [name]: file,
-      });
-      // Create image preview URL
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setImagePreview(initialData?.imageUrl || null); // Revert to initial if file removed
-      }
+    
+    if (type === 'file' && files && files[0]) {
+      // Handle file upload and preview
+      setFormData(prev => ({ ...prev, [name]: files[0] }));
+      
+      // Create image preview
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(files[0]);
     } else if (type === 'checkbox') {
-      setFormData({
-        ...formData,
-        [name]: checked,
-      });
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else if (name === 'category' && value === 'new') {
+      // Handle selecting the "Add new category" option
+      setIsNewCategory(true);
+      // Don't update formData yet - wait for custom input
+    } else if (name === 'customCategory') {
+      // Handle custom category input
+      setCustomCategory(value);
+      setFormData(prev => ({ ...prev, category: value }));
     } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
+      setFormData(prev => ({ ...prev, [name]: value }));
+      
+      // If changing category back to a predefined one, reset custom category state
+      if (name === 'category' && isNewCategory) {
+        setIsNewCategory(false);
+        setCustomCategory('');
+      }
     }
 
     // Clear field error when changing
@@ -135,13 +136,13 @@ const MenuForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md overflow-hidden">
+    <form onSubmit={handleSubmit}>
       {formError && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded border border-red-300">
           {formError}
         </div>
       )}
-      <div className="p-6">
+      <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Name */}
           <div>
@@ -178,25 +179,60 @@ const MenuForm = ({
             >
               Category *
             </label>
-            <select
-              name="category"
-              id="category"
-              value={formData.category}
-              onChange={handleFormChange}
-              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm ${
-                formErrors.category ? 'border-red-300 ring ring-red-300' : ''
-              }`}
-              aria-required="true"
-              aria-invalid={!!formErrors.category}
-              aria-describedby={formErrors.category ? "category-error" : undefined}
-            >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            
+            {!isNewCategory ? (
+              <div className="relative">
+                <select
+                  name="category"
+                  id="category"
+                  value={formData.category}
+                  onChange={handleFormChange}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm ${
+                    formErrors.category ? 'border-red-300 ring ring-red-300' : ''
+                  }`}
+                  aria-required="true"
+                  aria-invalid={!!formErrors.category}
+                  aria-describedby={formErrors.category ? "category-error" : undefined}
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                  <option value="new" className="font-medium text-blue-600">+ Add new category</option>
+                </select>
+              </div>
+            ) : (
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <input
+                  type="text"
+                  name="customCategory"
+                  id="customCategory"
+                  value={customCategory}
+                  onChange={handleFormChange}
+                  placeholder="Enter new category name"
+                  className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm ${
+                    formErrors.category ? 'border-red-300 ring ring-red-300' : ''
+                  }`}
+                  aria-required="true"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewCategory(false);
+                    // If they didn't enter anything, reset category
+                    if (!customCategory.trim()) {
+                      setFormData(prev => ({ ...prev, category: '' }));
+                    }
+                  }}
+                  className="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+            
             {formErrors.category && (
               <p id="category-error" className="mt-1 text-sm text-red-600">
                 {formErrors.category}

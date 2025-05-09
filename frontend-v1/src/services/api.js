@@ -117,6 +117,8 @@ export const auth = {
 export const user = {
   getProfile: () => userService.get(API_CONFIG.user.endpoints.profile),
   updateProfile: (data) => userService.put(API_CONFIG.user.endpoints.updateProfile, data),
+  // Add method to update a specific user by ID
+  updateUser: (id, data) => userService.put(`/api/users/${id}`, data),
   changePassword: (data) => userService.post(API_CONFIG.user.endpoints.changePassword, data),
   getAddresses: () => userService.get(API_CONFIG.user.endpoints.addresses),
   addAddress: (data) => userService.post(API_CONFIG.user.endpoints.addresses, data),

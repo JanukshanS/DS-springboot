@@ -102,6 +102,38 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
+export const updateUserRestaurant = createAsyncThunk(
+  'auth/updateUserRestaurant',
+  async (restaurantId, { rejectWithValue, getState }) => {
+    try {
+      const { user } = getState().auth;
+      if (!user || !user.id) {
+        return rejectWithValue('User not authenticated');
+      }
+      
+      // Create update data with restaurant ID
+      const updateData = {
+        restaurantId: restaurantId
+      };
+      
+      // Import the user service directly to access the correct endpoint
+      const { user: userService } = await import('../../services/api');
+      
+      // Update the user with the restaurant ID using the /{id} endpoint
+      const response = await userService.updateUser(user.id, updateData);
+      
+      // After updating, fetch the latest user profile to ensure state is current
+      const profileResponse = await authService.getCurrentUser();
+      return profileResponse.data;
+    } catch (error) {
+      console.error('Error updating user with restaurant ID:', error);
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update user with restaurant ID.'
+      );
+    }
+  }
+);
+
 // Helper function to check if token is valid
 const isTokenValid = () => {
   const token = localStorage.getItem('token');
@@ -212,9 +244,23 @@ const authSlice = createSlice({
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
         }
+      })
+      
+      // Update user with restaurant ID
+      .addCase(updateUserRestaurant.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserRestaurant.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(updateUserRestaurant.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export const { clearError, setUser } = authSlice.actions;
+export const { clearError, setUser, silentLogout } = authSlice.actions;
 export default authSlice.reducer;
