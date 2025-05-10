@@ -28,6 +28,7 @@ import OrderHistoryPage from './../pages/OrderHistoryPage';
 import OrderDetailsPage from './../pages/user/OrderDetailsPage';
 import AddressesPage from './../pages/user/AddressesPage';
 import PaymentMethodsPage from './../pages/user/PaymentMethodsPage';
+import PaymentSuccessPage from './../pages/user/PaymentSuccessPage';
 
 // Protected Restaurant Admin Pages
 import RestaurantDashboard from './../pages/restaurant/DashboardPage';
@@ -61,6 +62,7 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
+        
         {/* Public Routes with Main Layout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<LandingPage />} />
@@ -95,6 +97,7 @@ const AppRouter = () => {
           <Route path="orders/:id" element={<OrderDetailsPage />} />
           <Route path="addresses" element={<AddressesPage />} />
           <Route path="payment-methods" element={<PaymentMethodsPage />} />
+          <Route path="paymentDone" element={<PaymentSuccessPage/>} />
         </Route>
 
         {/* Protected Restaurant Admin Routes */}
@@ -131,7 +134,6 @@ const AppRouter = () => {
         >
           <Route path="dashboard" element={<DeliveryDashboard />} />
           <Route path="current-order" element={<DeliveryCurrentOrder />} />
-          {/* <Route path="history" element={<DeliveryHistory />} /> */}
           {/* <Route path="settings" element={<DeliverySettings />} /> */}
         </Route>
 
