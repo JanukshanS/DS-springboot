@@ -35,7 +35,9 @@ public class MenuItemServiceImpl implements MenuItemService {
             throw new ResourceNotFoundException("Restaurant not found with id: " + restaurantId);
         }
         
-        return menuItemRepository.findByRestaurantIdAndIsAvailableTrue(restaurantId).stream()
+        // Return ALL menu items for the restaurant regardless of availability
+        // This is used for the dashboard view
+        return menuItemRepository.findByRestaurantId(restaurantId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

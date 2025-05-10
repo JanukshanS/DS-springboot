@@ -18,11 +18,12 @@ export const fetchRestaurants = createAsyncThunk(
 
 export const fetchRestaurantDetails = createAsyncThunk(
   'restaurants/fetchRestaurantDetails',
-  async (id, { rejectWithValue }) => {
+  async ({ id, isDashboard = false }, { rejectWithValue }) => {
     try {
       // Get restaurant details
+      console.log('Fetching restaurant details for ID:', id);
       const detailsResponse = await restaurantService.getById(id);
-
+      console.log('Restaurant details response:', detailsResponse.data);
       // Initialize data structure with restaurant details
       const restaurantData = {
         ...detailsResponse.data,
@@ -33,7 +34,10 @@ export const fetchRestaurantDetails = createAsyncThunk(
 
       // Try to get menu items - don't fail if this fails
       try {
-        const menuResponse = await restaurantService.getMenu(id);
+        // Use different endpoints for dashboard and regular user views
+        const menuResponse = isDashboard 
+          ? await restaurantService.getMenuAll(id) // Dashboard shows all items including unavailable
+          : await restaurantService.getMenu(id);   // Regular users only see available items
         restaurantData.menuItems = menuResponse.data;
       } catch (menuError) {
         console.warn('Failed to fetch menu items:', menuError);
@@ -59,6 +63,69 @@ export const fetchRestaurantDetails = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to fetch restaurant details.'
+      );
+    }
+  }
+);
+
+// Async thunk for creating a menu item
+export const createMenuItem = createAsyncThunk(
+  'restaurants/createMenuItem',
+  async ({ restaurantId, menuItemData }, { rejectWithValue }) => {
+    try {
+      // Check if menuItemData is FormData
+      if (menuItemData instanceof FormData) {
+        // FormData is already properly set up in the component
+        const response = await restaurantService.createMenuItem(menuItemData);
+        return response.data; // Return the newly created menu item
+      } else {
+        // Handle case where it's a regular object
+        const dataToSend = { ...menuItemData, restaurantId };
+        const response = await restaurantService.createMenuItem(dataToSend);
+        return response.data;
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to create menu item.'
+      );
+    }
+  }
+);
+
+// Async thunk for updating a menu item
+export const updateMenuItem = createAsyncThunk(
+  'restaurants/updateMenuItem',
+  async ({ id, menuItemData }, { rejectWithValue }) => {
+    try {
+      // Check if menuItemData is FormData
+      if (menuItemData instanceof FormData) {
+        // FormData is already properly set up in the component
+        const response = await restaurantService.updateMenuItem(id, menuItemData);
+        return response.data; // Return the updated menu item
+      } else {
+        // Handle case where it's a regular object
+        const response = await restaurantService.updateMenuItem(id, menuItemData);
+        return response.data;
+      }
+    } catch (error) {
+      console.error('Error updating menu item:', error);
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update menu item.'
+      );
+    }
+  }
+);
+
+// Async thunk for deleting a menu item
+export const deleteMenuItem = createAsyncThunk(
+  'restaurants/deleteMenuItem',
+  async (id, { rejectWithValue }) => {
+    try {
+      await restaurantService.deleteMenuItem(id);
+      return id; // Return the ID of the deleted item
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to delete menu item.'
       );
     }
   }
@@ -109,6 +176,9 @@ const restaurantSlice = createSlice({
     clearRestaurant: (state) => {
       state.currentRestaurant = null;
     },
+    clearError: (state) => {
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -146,9 +216,68 @@ const restaurantSlice = createSlice({
       .addCase(fetchRestaurantDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Something went wrong';
+      })
+
+      // Create Menu Item
+      .addCase(createMenuItem.pending, (state) => {
+        state.loading = true; // Or a specific loading state like state.menuItemLoading = true
+        state.error = null;
+      })
+      .addCase(createMenuItem.fulfilled, (state, action) => {
+        state.loading = false;
+        // Add the new menu item to the current restaurant's menu if loaded
+        if (state.currentRestaurant && state.currentRestaurant.menuItems) {
+          state.currentRestaurant.menuItems.push(action.payload);
+        }
+        // Optionally, you might want to add it to a general menu item list if you have one
+      })
+      .addCase(createMenuItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to create menu item';
+      })
+
+      // Update Menu Item
+      .addCase(updateMenuItem.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateMenuItem.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the menu item in the current restaurant's menu if loaded
+        if (state.currentRestaurant && state.currentRestaurant.menuItems) {
+          const index = state.currentRestaurant.menuItems.findIndex(
+            (item) => item.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.currentRestaurant.menuItems[index] = action.payload;
+          }
+        }
+      })
+      .addCase(updateMenuItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update menu item';
+      })
+
+      // Delete Menu Item
+      .addCase(deleteMenuItem.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteMenuItem.fulfilled, (state, action) => {
+        state.loading = false;
+        // Remove the menu item from the current restaurant's menu if loaded
+        if (state.currentRestaurant && state.currentRestaurant.menuItems) {
+          state.currentRestaurant.menuItems = state.currentRestaurant.menuItems.filter(
+            (item) => item.id !== action.payload // action.payload is the ID
+          );
+        }
+      })
+      .addCase(deleteMenuItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to delete menu item';
       });
   },
 });
 
-export const { setFilters, clearFilters, setPage, clearRestaurant } = restaurantSlice.actions;
+export const { setFilters, clearFilters, setPage, clearRestaurant, clearError } = restaurantSlice.actions;
 export default restaurantSlice.reducer;

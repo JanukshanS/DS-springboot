@@ -31,10 +31,12 @@ const createApiService = (baseURL) => {
       const originalRequest = error.config;
 
       // Check if the request is for a public endpoint (restaurant browsing, etc.)
-      const isPublicEndpoint =
+      // Added a safety check to ensure originalRequest.url exists before checking includes
+      const isPublicEndpoint = originalRequest && originalRequest.url ? (
         originalRequest.url.includes('/api/restaurants') ||
         originalRequest.url.includes('/api/menu-items') ||
-        originalRequest.url.includes('/api/reviews');
+        originalRequest.url.includes('/api/reviews')
+      ) : false;
 
       // If error is 401 (Unauthorized) and we haven't already tried to refresh
       // and it's not a public endpoint (we don't want to redirect from public pages)
@@ -115,6 +117,8 @@ export const auth = {
 export const user = {
   getProfile: () => userService.get(API_CONFIG.user.endpoints.profile),
   updateProfile: (data) => userService.put(API_CONFIG.user.endpoints.updateProfile, data),
+  // Add method to update a specific user by ID
+  updateUser: (id, data) => userService.put(`/api/users/${id}`, data),
   changePassword: (data) => userService.post(API_CONFIG.user.endpoints.changePassword, data),
   getAddresses: () => userService.get(API_CONFIG.user.endpoints.addresses),
   addAddress: (data) => userService.post(API_CONFIG.user.endpoints.addresses, data),
@@ -136,6 +140,20 @@ export const restaurant = {
   getById: (id) =>
     restaurantService.get(
       formatUrl(API_CONFIG.restaurant.endpoints.details, { id })
+    ),
+  createRestaurant: (data) =>
+    restaurantService.post(
+      API_CONFIG.restaurant.endpoints.createRestaurant,
+      data
+    ),
+  updateRestaurant: (id, data) =>
+    restaurantService.put(
+      formatUrl(API_CONFIG.restaurant.endpoints.updateRestaurant, { id }),
+      data
+    ),
+  deleteRestaurant: (id) =>
+    restaurantService.delete(
+      formatUrl(API_CONFIG.restaurant.endpoints.deleteRestaurant, { id })
     ),
 
   // Menu items
@@ -169,6 +187,21 @@ export const restaurant = {
       formatUrl(API_CONFIG.restaurant.endpoints.menuItemAvailability, { id }),
       null,
       { params: { available } }
+    ),
+
+  createMenuItem: (data) =>
+    restaurantService.post(
+      API_CONFIG.restaurant.endpoints.createMenuItem,
+      data
+    ),
+  updateMenuItem: (id, data) =>
+    restaurantService.put(
+      formatUrl(API_CONFIG.restaurant.endpoints.updateMenuItem, { id }),
+      data
+    ),
+  deleteMenuItem: (id) =>
+    restaurantService.delete(
+      formatUrl(API_CONFIG.restaurant.endpoints.deleteMenuItem, { id })
     ),
 
   // Cuisine

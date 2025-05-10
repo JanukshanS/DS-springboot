@@ -31,26 +31,23 @@ import PaymentMethodsPage from './../pages/user/PaymentMethodsPage';
 import PaymentSuccessPage from './../pages/user/PaymentSuccessPage';
 
 // Protected Restaurant Admin Pages
-import RestaurantDashboard from './../pages/restaurant/DashboardPage';
-import RestaurantMenu from './../pages/restaurant/MenuPage';
-import RestaurantOrders from './../pages/restaurant/OrdersPage';
-import RestaurantSettings from './../pages/restaurant/SettingsPage';
+import RestaurantRoutes from "./routes/Restaurant_routes";
 
 // Protected Delivery Personnel Pages
 import DeliveryDashboard from './../pages/delivery/DashboardPage';
 import DeliveryCurrentOrder from './../pages/delivery/CurrentOrderPage';
-// import DeliveryHistory from './../pages/delivery/HistoryPage';
+import DeliveryOrderHistory from "./../pages/delivery/OrderHistoryPage";
 // import DeliverySettings from './../pages/delivery/SettingsPage';
 
 // Protected Route Component
-import ProtectedRoute from './../components/common/ProtectedRoute';
+import ProtectedRoute from "./../components/common/ProtectedRoute";
 
 // Not Found Page
 // import NotFoundPage from './../pages/NotFoundPage';
 
 const AppRouter = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // Fetch user profile on mount if authenticated
   useEffect(() => {
@@ -102,7 +99,7 @@ const AppRouter = () => {
 
         {/* Protected Restaurant Admin Routes */}
         <Route
-          path="/restaurant-admin"
+          path="/restaurant-admin/*"
           element={
             <ProtectedRoute>
               {user && user.role === "RESTAURANT_ADMIN" ? (
@@ -113,10 +110,7 @@ const AppRouter = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="dashboard" element={<RestaurantDashboard />} />
-          <Route path="menu" element={<RestaurantMenu />} />
-          <Route path="orders" element={<RestaurantOrders />} />
-          <Route path="settings" element={<RestaurantSettings />} />
+          <Route path="*" element={<RestaurantRoutes />} />
         </Route>
 
         {/* Protected Delivery Personnel Routes */}
@@ -134,6 +128,7 @@ const AppRouter = () => {
         >
           <Route path="dashboard" element={<DeliveryDashboard />} />
           <Route path="current-order" element={<DeliveryCurrentOrder />} />
+          <Route path="order-history" element={<DeliveryOrderHistory />} />
           {/* <Route path="settings" element={<DeliverySettings />} /> */}
         </Route>
 
