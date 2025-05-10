@@ -66,16 +66,40 @@ const CheckoutPage = () => {
       status: 'CONFIRMED', // Initial status of the order
     };
 
-    try {
-      // Step 1: Create the Order
-      const orderResponse = await axios.post('http://localhost:8080/api/orders/create', orderBody);
-      const orderData = orderResponse.data;
-      console.log('Order Response:', orderData); // Log the order response for debugging
+   try {
+    // Step 1: Create the Order
+    const orderResponse = await axios.post('http://localhost:8080/api/orders/create', orderBody);
+    const orderData = orderResponse.data;
+    console.log('Order Response:', orderData); // Log the order response for debugging
 
-      if (orderResponse.status === 201) {
-        toast.success('Order created successfully!');
+    if (orderResponse.status === 201) {
+      toast.success('Order created successfully!');
 
-        // Step 2: Create the Payment session after the order is created
+      // Step 2: Create the Delivery (before payment)
+      const deliveryBody = {
+        orderId: orderData.id,  // The order ID from the order creation response
+        pickupAddress: restaurantName + ', ' + restaurantId, // Example pickup address
+        deliveryAddress: deliveryAddress,
+        customerName: "Unknown user",
+        customerPhone: "+1234567890",  // Assuming user.phone contains the customer's phone number
+        restaurantId: restaurantId,
+        restaurantName: "Unknown Resturent",
+        restaurantPhone: '',  // Add the restaurant phone number if available
+        estimatedDeliveryTime: new Date(Date.now() + 30 * 60000).toISOString(), // Estimated delivery time (30 mins from now)
+        specialInstructions: '',  // Include any special instructions from the order if needed
+        driverId: 3,  // Example driver ID, this should be dynamic depending on your system
+      };
+
+      // Make the API call to create the delivery
+      const deliveryResponse = await axios.post('http://localhost:8080/api/deliveries/create', deliveryBody);
+      const deliveryData = deliveryResponse.data;
+      console.log(deliveryResponse);
+      console.log('Delivery Response:', deliveryData); // Log the delivery response for debugging
+
+      if (deliveryResponse.status === 201) {
+        toast.success('Delivery created successfully!');
+
+        // Step 3: Create the Payment session after the delivery is created
         const paymentBody = {
           amount: total, // total amount from the cart
           quantity: items.length, // total quantity of items
@@ -95,15 +119,18 @@ const CheckoutPage = () => {
           toast.error('Failed to create payment session');
         }
       } else {
-        toast.error('Failed to create order');
+        toast.error('Failed to create delivery');
       }
-    } catch (error) {
-      toast.error('An error occurred while processing the order');
-      console.error('Error:', error); // Log the error for debugging
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error('Failed to create order');
     }
-  };
+  } catch (error) {
+    toast.error('An error occurred while processing the order');
+    console.error('Error:', error); // Log the error for debugging
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Calculate order summary
   const subtotal = total;
