@@ -1,10 +1,10 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FiFilter, FiSearch, FiChevronDown, FiChevronUp, FiClock, FiInfo, FiCheckCircle, FiXCircle, FiTruck } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiChevronDown, FiChevronUp, FiClock, FiInfo, FiCheckCircle, FiXCircle, FiTruck, FiUser } from 'react-icons/fi';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 import { fetchRestaurantOrders, updateOrderStatus } from '../../store/slices/orderSlice';
-import { restaurant as restaurantService } from '../../services/api';
+import { restaurant as restaurantService, user as userService } from '../../services/api';
 
 const OrdersPage = () => {
   const dispatch = useDispatch();
@@ -18,6 +18,8 @@ const OrdersPage = () => {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [menuLoading, setMenuLoading] = useState(false);
+  const [usernames, setUsernames] = useState({});
+  const [loadingUsernames, setLoadingUsernames] = useState(false);
   
   useEffect(() => {
     // Fetch orders for the restaurant
@@ -34,6 +36,56 @@ const OrdersPage = () => {
       toast.error('No restaurant ID found. Please check your account settings.');
     }
   }, [dispatch, user]);
+  
+  // Fetch usernames for all orders when ordersList changes
+  useEffect(() => {
+    if (ordersList && ordersList.length > 0) {
+      fetchUsernames();
+    }
+  }, [ordersList]);
+  
+  // Function to fetch usernames for all user IDs in the orders
+  const fetchUsernames = async () => {
+    try {
+      setLoadingUsernames(true);
+      
+      // Get unique user IDs from orders
+      const userIds = [...new Set(ordersList.map(order => order.userId).filter(id => id))];
+      
+      if (userIds.length === 0) {
+        setLoadingUsernames(false);
+        return;
+      }
+      
+      // Create a map to store usernames
+      const usernameMap = {};
+      
+      // Fetch user details for each user ID
+      const fetchPromises = userIds.map(async (userId) => {
+        try {
+          const response = await userService.getUserById(userId);
+          return { userId, username: response.data.username || response.data.name || `User ${userId}` };
+        } catch (error) {
+          console.error(`Error fetching user ${userId}:`, error);
+          return { userId, username: `User ${userId}` }; // Fallback
+        }
+      });
+      
+      // Wait for all requests to complete
+      const results = await Promise.all(fetchPromises);
+      
+      // Build the username map
+      results.forEach(result => {
+        usernameMap[result.userId] = result.username;
+      });
+      
+      setUsernames(usernameMap);
+    } catch (error) {
+      console.error('Error fetching usernames:', error);
+    } finally {
+      setLoadingUsernames(false);
+    }
+  };
   
   const fetchMenuItems = async (restaurantId) => {
     try {
@@ -71,6 +123,7 @@ const OrdersPage = () => {
       const lowercaseSearch = searchTerm.toLowerCase();
       result = result.filter(order => 
         order.id.toString().toLowerCase().includes(lowercaseSearch) ||
+        (usernames[order.userId] && usernames[order.userId].toLowerCase().includes(lowercaseSearch)) ||
         (order.customer?.name && order.customer.name.toLowerCase().includes(lowercaseSearch)) ||
         (order.customer?.phone && order.customer.phone.toLowerCase().includes(lowercaseSearch)) ||
         (order.items && order.items.some(item => item.name.toLowerCase().includes(lowercaseSearch)))
@@ -352,7 +405,14 @@ const OrdersPage = () => {
                         #{order.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        User ID: {order.userId || 'Unknown'}
+                        <div className="flex items-center">
+                          <FiUser className="text-gray-400 mr-2" />
+                          {loadingUsernames ? (
+                            <span className="text-gray-500">Loading user...</span>
+                          ) : (
+                            <span>{usernames[order.userId] || `User ${order.userId || 'Unknown'}`}</span>
+                          )}
+                        </div>
                         <p className="text-gray-500 text-xs">Order #{order.id}</p>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

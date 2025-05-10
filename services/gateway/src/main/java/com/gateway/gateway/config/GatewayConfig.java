@@ -44,6 +44,13 @@ public class GatewayConfig {
                                 .circuitBreaker(c -> c.setName("restaurantReviewCircuitBreaker")
                                         .setFallbackUri("forward:/fallback/restaurant")))
                         .uri("http://localhost:8082"))  
+
+                // Restaurant Cuisine Routes - All require authentication
+                .route("restaurant-cuisine-service", r -> r.path("/api/cuisines/**")
+                        .filters(f -> f.filter(authenticationFilter)
+                                .circuitBreaker(c -> c.setName("restaurantCuisineCircuitBreaker")
+                                        .setFallbackUri("forward:/fallback/restaurant")))
+                        .uri("http://localhost:8082"))
                 
                 // Order Service Routes - All require authentication
                 .route("order-service", r -> r.path("/api/orders/**")

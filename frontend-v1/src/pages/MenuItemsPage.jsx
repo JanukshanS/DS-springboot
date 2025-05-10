@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiSearch, FiFilter, FiStar, FiDollarSign, FiClock } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiStar, FiDollarSign, FiClock, FiShoppingBag } from 'react-icons/fi';
 import { restaurant as restaurantService } from '../services/api';
 import Button from '../components/common/Button';
 import MenuItemDTO from '../models/MenuItemDTO';
@@ -12,6 +12,8 @@ const MenuItemsPage = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [restaurants, setRestaurants] = useState({});
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
   const [filters, setFilters] = useState({
     category: '',
     priceRange: '',
@@ -44,7 +46,7 @@ const MenuItemsPage = () => {
     { label: 'Over $20', min: 20, max: Infinity }
   ];
 
-  // Fetch all menu items
+  // Fetch all menu items and restaurants
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
@@ -55,6 +57,12 @@ const MenuItemsPage = () => {
         const items = response.data.map(item => MenuItemDTO.fromResponse(item));
         setMenuItems(items);
         setFilteredItems(items);
+        
+        // Extract unique restaurant IDs from menu items
+        const restaurantIds = [...new Set(items.map(item => item.restaurantId))];
+        
+        // Fetch restaurant details for each unique restaurant ID
+        await fetchRestaurantNames(restaurantIds);
       } catch (err) {
         console.error('Error fetching menu items:', err);
         setError('Failed to load menu items. Please try again later.');
@@ -65,6 +73,44 @@ const MenuItemsPage = () => {
 
     fetchMenuItems();
   }, []);
+  
+  // Function to fetch restaurant names by IDs
+  const fetchRestaurantNames = async (restaurantIds) => {
+    try {
+      setLoadingRestaurants(true);
+      const restaurantMap = {};
+      
+      // Fetch each restaurant's details
+      const fetchPromises = restaurantIds.map(async (id) => {
+        try {
+          const response = await restaurantService.getById(id);
+          return { id, name: response.data.name };
+        } catch (error) {
+          console.error(`Error fetching restaurant ${id}:`, error);
+          return { id, name: `Restaurant ${id}` }; // Fallback name
+        }
+      });
+      
+      // Wait for all requests to complete
+      const results = await Promise.all(fetchPromises);
+      
+      // Build the restaurant map
+      results.forEach(restaurant => {
+        restaurantMap[restaurant.id] = restaurant.name;
+      });
+      
+      setRestaurants(restaurantMap);
+    } catch (error) {
+      console.error('Error fetching restaurant names:', error);
+    } finally {
+      setLoadingRestaurants(false);
+    }
+  };
+  
+  // Function to get restaurant name from ID
+  const getRestaurantName = (restaurantId) => {
+    return restaurants[restaurantId] || `Restaurant ${restaurantId}`;
+  };
 
   // Filter menu items when search term or filters change
   useEffect(() => {
@@ -325,9 +371,12 @@ const MenuItemsPage = () => {
               <div className="space-y-10">
                 {Object.entries(groupedByRestaurant).map(([restaurantId, items]) => (
                   <div key={restaurantId} className="bg-white rounded-xl shadow-md overflow-hidden p-6">
-                    <h2 className="text-2xl font-rowdies font-bold text-gray-800 mb-4">
-                      Restaurant ID: {restaurantId}
-                    </h2>
+                    <div className="flex items-center gap-3 mb-4">
+                      <FiShoppingBag className="text-orange-500 h-6 w-6" />
+                      <h2 className="text-2xl font-rowdies font-bold text-gray-800">
+                        {getRestaurantName(restaurantId)}
+                      </h2>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {items.map((item) => (
                         <div key={item.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">

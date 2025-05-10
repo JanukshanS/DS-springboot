@@ -8,6 +8,7 @@ import {
   clearFilters,
   setPage,
 } from "../store/slices/restaurantSlice";
+import { restaurant } from '../services/api';
 import Button from '../components/common/Button';
 
 const RestaurantsPage = () => {
@@ -18,17 +19,38 @@ const RestaurantsPage = () => {
 
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [cuisineTypes, setCuisineTypes] = useState([]);
+  const [loadingCuisines, setLoadingCuisines] = useState(false);
   const [localFilters, setLocalFilters] = useState({
     cuisine: '',
     priceLevel: '',
     rating: ''
   });
 
-  // Cuisine options (would typically come from an API)
-  const cuisineOptions = [
-    'Italian', 'Mexican', 'Chinese', 'Indian', 'Japanese',
-    'Thai', 'American', 'Mediterranean', 'Greek', 'French'
-  ];
+  // Fetch cuisine types from the backend
+  useEffect(() => {
+    const fetchCuisineTypes = async () => {
+      try {
+        setLoadingCuisines(true);
+        const response = await restaurant.getAllCuisines();
+        if (response.data && Array.isArray(response.data)) {
+          setCuisineTypes(response.data);
+          console.log('Fetched cuisine types:', response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching cuisine types:', error);
+        // Fallback to default cuisine types if the API call fails
+        setCuisineTypes([
+          'Italian', 'Mexican', 'Chinese', 'Indian', 'Japanese',
+          'Thai', 'American', 'Mediterranean', 'Greek', 'French'
+        ]);
+      } finally {
+        setLoadingCuisines(false);
+      }
+    };
+
+    fetchCuisineTypes();
+  }, []);
 
   useEffect(() => {
     const params = {
@@ -54,11 +76,27 @@ const RestaurantsPage = () => {
   };
 
   const applyFilters = () => {
-    dispatch(setFilters({
-      cuisine: localFilters.cuisine || null,
-      priceLevel: localFilters.priceLevel || null,
-      rating: localFilters.rating ? Number(localFilters.rating) : null
-    }));
+    console.log('Applying filters:', localFilters);
+    // Create an object with only the non-empty filters
+    const filtersToApply = {};
+    
+    if (localFilters.cuisine) {
+      filtersToApply.cuisine = localFilters.cuisine;
+    }
+    
+    if (localFilters.priceLevel) {
+      filtersToApply.priceLevel = localFilters.priceLevel;
+    }
+    
+    if (localFilters.rating) {
+      filtersToApply.rating = Number(localFilters.rating);
+    }
+    
+    console.log('Filters being applied:', filtersToApply);
+    dispatch(setFilters(filtersToApply));
+    
+    // Reset page to 1 when applying filters
+    dispatch(setPage(1));
     setShowFilters(false);
   };
 
@@ -132,14 +170,19 @@ const RestaurantsPage = () => {
                   name="cuisine"
                   value={localFilters.cuisine}
                   onChange={handleFilterChange}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  disabled={loadingCuisines}
                 >
                   <option value="">All Cuisines</option>
-                  {cuisineOptions.map((cuisine) => (
-                    <option key={cuisine} value={cuisine}>
-                      {cuisine}
-                    </option>
-                  ))}
+                  {loadingCuisines ? (
+                    <option value="" disabled>Loading cuisines...</option>
+                  ) : (
+                    cuisineTypes.map((cuisine) => (
+                      <option key={cuisine} value={cuisine}>
+                        {cuisine}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
@@ -191,7 +234,9 @@ const RestaurantsPage = () => {
               <Button variant="outline" onClick={resetFilters}>
                 Reset
               </Button>
-              <Button onClick={applyFilters}>Apply Filters</Button>
+              <Button onClick={applyFilters}>
+                Apply Filters
+              </Button>
             </div>
           </div>
         )}

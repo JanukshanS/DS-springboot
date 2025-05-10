@@ -47,7 +47,7 @@ public class UserController {
      * @return user if found
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN') or @userSecurity.isCurrentUser(#id)")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN') or @userSecurity.isCurrentUser(#id) or hasRole('RESTAURANT_ADMIN')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(UserResponse.fromUser(user));

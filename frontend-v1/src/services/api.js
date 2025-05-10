@@ -110,13 +110,23 @@ export const auth = {
   logout: () => authService.post(API_CONFIG.auth.endpoints.logout),
   forgotPassword: (email) => authService.post(API_CONFIG.auth.endpoints.forgotPassword, { email }),
   resetPassword: (data) => authService.post(API_CONFIG.auth.endpoints.resetPassword, data),
-  getCurrentUser: () => authService.get(API_CONFIG.auth.endpoints.me),
+  getCurrentUser: () => authService.get(API_CONFIG.auth.endpoints.me)
+    .then(response => {
+      localStorage.setItem('userData', JSON.stringify(response.data));
+      return response;
+    })
+    .catch(error => {
+      console.log(error);
+      return error.response.data;
+    }),
 };
 
 // User API methods
 export const user = {
   getProfile: () => userService.get(API_CONFIG.user.endpoints.profile),
   updateProfile: (data) => userService.put(API_CONFIG.user.endpoints.updateProfile, data),
+  // Get user by ID
+  getUserById: (id) => userService.get(formatUrl(API_CONFIG.user.endpoints.getUserById, { id })),
   // Add method to update a specific user by ID
   updateUser: (id, data) => userService.put(`/api/users/${id}`, data),
   changePassword: (data) => userService.post(API_CONFIG.user.endpoints.changePassword, data),
@@ -141,6 +151,10 @@ export const restaurant = {
     restaurantService.get(
       formatUrl(API_CONFIG.restaurant.endpoints.details, { id })
     ),
+  getAllCuisines: () =>
+    restaurantService.get(API_CONFIG.restaurant.endpoints.cuisines),
+  getRestaurantsByCuisine: (cuisineType) =>
+    restaurantService.get(`/api/restaurants/cuisine/${encodeURIComponent(cuisineType)}`),
   createRestaurant: (data) =>
     restaurantService.post(
       API_CONFIG.restaurant.endpoints.createRestaurant,

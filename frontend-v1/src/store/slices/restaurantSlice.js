@@ -13,9 +13,23 @@ export const fetchRestaurants = createAsyncThunk(
   'restaurants/fetchRestaurants',
   async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await restaurantService.getAll(params);
-      return response.data;
+      console.log('Fetching restaurants with params:', params);
+      
+      // If cuisine filter is specified, use the specific cuisine endpoint
+      if (params.cuisine) {
+        console.log('Filtering by cuisine:', params.cuisine);
+        const response = await restaurantService.getRestaurantsByCuisine(params.cuisine);
+        return {
+          items: response.data,
+          pagination: params.pagination || { page: 1, limit: 10, total: response.data.length }
+        };
+      } else {
+        // Otherwise use the regular endpoint with query parameters
+        const response = await restaurantService.getAll(params);
+        return response.data;
+      }
     } catch (error) {
+      console.error('Error fetching restaurants:', error);
       return rejectWithValue(
         error.response?.data?.message || 'Failed to fetch restaurants.'
       );

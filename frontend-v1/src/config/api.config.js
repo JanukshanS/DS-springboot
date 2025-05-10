@@ -34,6 +34,7 @@ const API_CONFIG = {
       changePassword: "/api/users/change-password",
       addresses: "/api/users/addresses",
       paymentMethods: "/api/users/payment-methods",
+      getUserById: "/api/users/{id}",
     },
   },
   restaurant: {
@@ -44,6 +45,7 @@ const API_CONFIG = {
       createRestaurant: "/api/restaurants", // Added missing endpoint for creating restaurant
       updateRestaurant: "/api/restaurants/{id}", // Added missing endpoint for updating restaurant
       deleteRestaurant: "/api/restaurants/{id}", // Added missing endpoint for deleting restaurant
+      cuisines: "/api/cuisines", // Added endpoint for fetching all cuisine types
       menu: "/api/menu-items/restaurant/{restaurantId}",
       menuAll: "/api/menu-items/restaurant/{restaurantId}/all",
       menuByCategory:

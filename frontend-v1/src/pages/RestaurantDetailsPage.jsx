@@ -147,7 +147,7 @@ const RestaurantDetailsPage = () => {
           alt={currentRestaurant.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-end">
+        <div className="absolute inset-0 bg-transparent flex items-end">
           <div className="max-w-7xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold text-white sm:text-4xl">
               {currentRestaurant.name}
@@ -261,9 +261,9 @@ const RestaurantDetailsPage = () => {
                     key={item.id}
                     className="border border-gray-200 rounded-lg overflow-hidden flex flex-col"
                   >
-                    {item.image && (
+                    {item.imageUrl && (
                       <img
-                        src={item.image}
+                        src={item.imageUrl}
                         alt={item.name}
                         className="w-full h-48 object-cover"
                       />
