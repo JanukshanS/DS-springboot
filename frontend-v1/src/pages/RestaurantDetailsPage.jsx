@@ -21,7 +21,7 @@ const RestaurantDetailsPage = () => {
 
   // Fetch restaurant details when component mounts or ID changes
   useEffect(() => {
-    dispatch(fetchRestaurantDetails(id));
+    dispatch(fetchRestaurantDetails({id}));
 
     // Cleanup when component unmounts
     return () => {
