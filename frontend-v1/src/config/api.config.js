@@ -73,7 +73,7 @@ const API_CONFIG = {
       details: "/api/orders/{id}",
       cancel: "/api/orders/{id}/cancel",
       userOrders: "/api/users/{userId}/orders",
-      restaurantOrders: "/api/restaurants/{restaurantId}/orders",
+      restaurantOrders: "/api/orders/restaurant/{restaurantId}",
     },
   },
   payment: {
