@@ -1,32 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { createOrder } from '../../store/slices/orderSlice';
-import { clearCart } from '../../store/slices/cartSlice';
-import Input from '../../components/common/Input';
-import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
+import axios from 'axios';  // Import axios
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
 
 const CheckoutPage = () => {
   const { items, restaurantId, restaurantName, total } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
-  const { loading, error, success, currentOrder } = useSelector((state) => state.orders);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // State for the checkout form
-  const [formData, setFormData] = useState({
-    deliveryAddress: user?.address || '',
-    deliveryInstructions: '',
-    paymentMethod: 'CREDIT_CARD',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvv: '',
-    nameOnCard: '',
-  });
-  
-  // State for form errors
+  // State for the delivery address
+  const [deliveryAddress, setDeliveryAddress] = useState(user?.address || '');
   const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -36,29 +25,11 @@ const CheckoutPage = () => {
     }
   }, [items, navigate]);
 
-  // Redirect on successful order
-  useEffect(() => {
-    if (success && currentOrder) {
-      dispatch(clearCart());
-      navigate(`/user/orders/${currentOrder.id}`);
-    }
-  }, [success, currentOrder, dispatch, navigate]);
-
-  // Show error message if there's an error
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    
+    setDeliveryAddress(value);
+
     // Clear field error when typing
     if (formErrors[name]) {
       setFormErrors({
@@ -68,88 +39,69 @@ const CheckoutPage = () => {
     }
   };
 
-  // Validate checkout form
-  const validateForm = () => {
-    const errors = {};
-
-    if (!formData.deliveryAddress.trim()) {
-      errors.deliveryAddress = 'Delivery address is required';
+  // Handle checkout button click
+  const handleCheckout = async () => {
+    if (!deliveryAddress.trim()) {
+      setFormErrors({ deliveryAddress: 'Delivery address is required' });
+      return;
     }
 
-    if (formData.paymentMethod === 'CREDIT_CARD') {
-      // Simple credit card validation
-      if (!formData.cardNumber.trim()) {
-        errors.cardNumber = 'Card number is required';
-      } else if (!/^\d{16}$/.test(formData.cardNumber.replace(/\s/g, ''))) {
-        errors.cardNumber = 'Invalid card number';
+    setLoading(true);
+
+    // Prepare the order creation request body
+    const orderItems = items.map((item) => ({
+      menuItemId: item.id,
+      quantity: item.quantity,
+      customizations: item.customizations || '',
+    }));
+
+    const orderBody = {
+      restaurantId: restaurantId,
+      userId: user.id,
+      deliveryAddress: deliveryAddress,
+      specialInstructions: '', // If there's any additional instruction, you can include it here.
+      items: orderItems,
+      paymentMethod: 'CREDIT_CARD', // assuming CREDIT_CARD is selected
+      totalAmount: total,
+      status: 'CONFIRMED', // Initial status of the order
+    };
+
+    try {
+      // Step 1: Create the Order
+      const orderResponse = await axios.post('http://localhost:8080/api/orders/create', orderBody);
+      const orderData = orderResponse.data;
+      console.log('Order Response:', orderData); // Log the order response for debugging
+
+      if (orderResponse.status === 201) {
+        toast.success('Order created successfully!');
+
+        // Step 2: Create the Payment session after the order is created
+        const paymentBody = {
+          amount: total, // total amount from the cart
+          quantity: items.length, // total quantity of items
+          currency: 'USD',
+          name: 'food', // You can customize this as needed
+        };
+
+        // Make the API call to create the payment session
+        const paymentResponse = await axios.post('http://localhost:8084/api/payments/checkout', paymentBody);
+        const paymentData = paymentResponse.data;
+        console.log('Payment Response:', paymentData); // Log the payment response for debugging
+
+        if (paymentData.status === 'SUCCESS') {
+          // Redirect to the payment session URL
+          window.location.href = paymentData.sessionUrl;
+        } else {
+          toast.error('Failed to create payment session');
+        }
+      } else {
+        toast.error('Failed to create order');
       }
-
-      if (!formData.cardExpiry.trim()) {
-        errors.cardExpiry = 'Expiry date is required';
-      } else if (!/^\d{2}\/\d{2}$/.test(formData.cardExpiry)) {
-        errors.cardExpiry = 'Invalid expiry date format (MM/YY)';
-      }
-
-      if (!formData.cardCvv.trim()) {
-        errors.cardCvv = 'CVV is required';
-      } else if (!/^\d{3,4}$/.test(formData.cardCvv)) {
-        errors.cardCvv = 'Invalid CVV';
-      }
-
-      if (!formData.nameOnCard.trim()) {
-        errors.nameOnCard = 'Name on card is required';
-      }
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // Handle place order
-  const handlePlaceOrder = (e) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      // Map cart items to order items format
-      const orderItems = items.map((item) => ({
-        menuItemId: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      }));
-
-      // Calculate order totals
-      const subtotal = total;
-      const deliveryFee = 2.99;
-      const tax = subtotal * 0.08; // 8% tax
-      const totalAmount = subtotal + deliveryFee + tax;
-
-      // Create order object
-      const orderData = {
-        restaurantId,
-        restaurantName,
-        deliveryAddress: formData.deliveryAddress,
-        deliveryInstructions: formData.deliveryInstructions,
-        paymentMethod: formData.paymentMethod,
-        items: orderItems,
-        subtotal,
-        deliveryFee,
-        tax,
-        total: totalAmount,
-        // Only include payment details in request if we're using a card
-        // In a real app, you'd use a secure payment processor
-        ...(formData.paymentMethod === 'CREDIT_CARD' && {
-          paymentDetails: {
-            cardNumber: formData.cardNumber.replace(/\s/g, ''),
-            cardExpiry: formData.cardExpiry,
-            cardCvv: formData.cardCvv,
-            nameOnCard: formData.nameOnCard,
-          },
-        }),
-      };
-
-      // Dispatch create order action
-      dispatch(createOrder(orderData));
+    } catch (error) {
+      toast.error('An error occurred while processing the order');
+      console.error('Error:', error); // Log the error for debugging
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -219,165 +171,44 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        {/* Checkout form */}
+        {/* Delivery Address Section */}
         <div className="lg:col-span-2">
-          <form onSubmit={handlePlaceOrder} className="space-y-6">
-            {/* Delivery details section */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Delivery Details</h2>
-              </div>
-              <div className="px-4 py-5 sm:p-6 space-y-4">
-                <Input
-                  id="deliveryAddress"
-                  name="deliveryAddress"
-                  label="Delivery Address"
-                  value={formData.deliveryAddress}
-                  onChange={handleChange}
-                  required
-                  error={formErrors.deliveryAddress}
-                  disabled={loading}
-                />
-
-                <Input
-                  id="deliveryInstructions"
-                  name="deliveryInstructions"
-                  label="Delivery Instructions (optional)"
-                  value={formData.deliveryInstructions}
-                  onChange={handleChange}
-                  placeholder="E.g., Ring the doorbell, leave at door, etc."
-                  disabled={loading}
-                />
-              </div>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <h2 className="text-lg font-medium text-gray-900">Delivery Details</h2>
             </div>
+            <div className="px-4 py-5 sm:p-6 space-y-4">
+              <Input
+                id="deliveryAddress"
+                name="deliveryAddress"
+                label="Delivery Address"
+                value={deliveryAddress}
+                onChange={handleChange}
+                required
+                error={formErrors.deliveryAddress}
+                disabled={loading}
+              />
+            </div>
+          </div>
 
-            {/* Payment details section */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Payment Method</h2>
-              </div>
-              <div className="px-4 py-5 sm:p-6 space-y-4">
-                {/* Payment method selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Payment Method
-                  </label>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <input
-                        id="paymentMethod-card"
-                        name="paymentMethod"
-                        type="radio"
-                        value="CREDIT_CARD"
-                        checked={formData.paymentMethod === 'CREDIT_CARD'}
-                        onChange={handleChange}
-                        className="h-4 w-4 text-orange-500 focus:ring-orange-400 border-gray-300"
-                      />
-                      <label htmlFor="paymentMethod-card" className="ml-3 block text-sm text-gray-700">
-                        Credit / Debit Card
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="paymentMethod-cash"
-                        name="paymentMethod"
-                        type="radio"
-                        value="CASH_ON_DELIVERY"
-                        checked={formData.paymentMethod === 'CASH_ON_DELIVERY'}
-                        onChange={handleChange}
-                        className="h-4 w-4 text-orange-500 focus:ring-orange-400 border-gray-300"
-                      />
-                      <label htmlFor="paymentMethod-cash" className="ml-3 block text-sm text-gray-700">
-                        Cash on Delivery
-                      </label>
-                    </div>
-                  </div>
+          {/* Checkout Button */}
+          <div className="flex flex-col space-y-4 mt-6">
+            <Button
+              type="button"
+              fullWidth
+              onClick={handleCheckout}
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></div>
+                  Processing...
                 </div>
-
-                {/* Credit card details - shown only if payment method is credit card */}
-                {formData.paymentMethod === 'CREDIT_CARD' && (
-                  <div className="space-y-4 pt-4">
-                    <Input
-                      id="cardNumber"
-                      name="cardNumber"
-                      label="Card Number"
-                      value={formData.cardNumber}
-                      onChange={handleChange}
-                      placeholder="1234 5678 9012 3456"
-                      required
-                      error={formErrors.cardNumber}
-                      disabled={loading}
-                    />
-
-                    <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-3">
-                      <Input
-                        id="nameOnCard"
-                        name="nameOnCard"
-                        label="Name on Card"
-                        value={formData.nameOnCard}
-                        onChange={handleChange}
-                        required
-                        error={formErrors.nameOnCard}
-                        disabled={loading}
-                      />
-
-                      <Input
-                        id="cardExpiry"
-                        name="cardExpiry"
-                        label="Expiry Date (MM/YY)"
-                        value={formData.cardExpiry}
-                        onChange={handleChange}
-                        placeholder="MM/YY"
-                        required
-                        error={formErrors.cardExpiry}
-                        disabled={loading}
-                      />
-
-                      <Input
-                        id="cardCvv"
-                        name="cardCvv"
-                        label="CVV"
-                        value={formData.cardCvv}
-                        onChange={handleChange}
-                        placeholder="123"
-                        required
-                        error={formErrors.cardCvv}
-                        disabled={loading}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Submit button */}
-            <div className="flex flex-col space-y-4">
-              <Button
-                type="submit"
-                fullWidth
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  `Place Order - $${orderTotal.toFixed(2)}`
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                fullWidth
-                onClick={() => navigate('/user/cart')}
-                disabled={loading}
-              >
-                Back to Cart
-              </Button>
-            </div>
-          </form>
+              ) : (
+                `Checkout - $${orderTotal.toFixed(2)}`
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
