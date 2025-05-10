@@ -21,6 +21,10 @@ public class RouterValidator {
             "/api/restaurants/cuisines",
             "/api/menu-items",
             "/api/menu-items/",
+            "/api/reviews",
+            "/api/reviews/",
+            "/api/reviews/restaurant",
+            "/api/reviews/restaurant/",  // Include all restaurant review endpoints
             "/api/orders",
             "/api/notifications",
             "/api/payments",
@@ -29,7 +33,17 @@ public class RouterValidator {
 
     // Predicate to check if the request should be authenticated
     public Predicate<ServerHttpRequest> isSecured =
-            request -> openApiEndpoints
-                    .stream()
-                    .noneMatch(uri -> request.getURI().getPath().startsWith(uri));
+            request -> {
+                String path = request.getURI().getPath();
+                
+                // Special case for reviews - allow all GET requests to reviews endpoints
+                if (path.startsWith("/api/reviews/") && request.getMethod() == org.springframework.http.HttpMethod.GET) {
+                    return false; // Not secured for GET requests
+                }
+                
+                // Check against the open endpoints list
+                return openApiEndpoints
+                        .stream()
+                        .noneMatch(uri -> path.startsWith(uri));
+            };
 }

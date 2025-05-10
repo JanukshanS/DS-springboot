@@ -9,6 +9,16 @@ import java.util.List;
 @Repository
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     
+    /**
+     * Find all menu items for a restaurant regardless of availability status
+     * Used for the restaurant dashboard view
+     */
+    List<MenuItem> findByRestaurantId(Long restaurantId);
+    
+    /**
+     * Find only available menu items for a restaurant
+     * Used for customer-facing views
+     */
     List<MenuItem> findByRestaurantIdAndIsAvailableTrue(Long restaurantId);
     
     List<MenuItem> findByRestaurantIdAndCategoryAndIsAvailableTrue(Long restaurantId, String category);

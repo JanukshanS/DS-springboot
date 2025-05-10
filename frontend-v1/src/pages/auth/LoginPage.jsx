@@ -32,6 +32,8 @@ const LoginPage = () => {
         navigate('/restaurant-admin/dashboard');
       } else if (user.role === 'DELIVERY_PERSONNEL') {
         navigate('/delivery/dashboard');
+      } else if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard');
       } else {
         navigate(redirectPath);
       }

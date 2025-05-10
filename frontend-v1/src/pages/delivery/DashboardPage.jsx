@@ -65,6 +65,7 @@ const DashboardPage = () => {
     fetchDeliveries();
   }, []);
 
+  // Format currency amounts
   // Calculate statistics from delivery data
   const calculateStats = (deliveryData) => {
     const today = new Date().setHours(0, 0, 0, 0);
@@ -111,6 +112,11 @@ const DashboardPage = () => {
 
   // Format currency amounts
   const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+    }).format(amount || 0);
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -203,6 +209,7 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
+      
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 mb-8">

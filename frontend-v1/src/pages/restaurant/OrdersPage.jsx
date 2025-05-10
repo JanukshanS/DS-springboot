@@ -1,162 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect, Fragment } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { FiFilter, FiSearch, FiChevronDown, FiChevronUp, FiClock, FiInfo, FiCheckCircle, FiXCircle, FiTruck } from 'react-icons/fi';
-import { order as orderService } from '../../services/api';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
+import { fetchRestaurantOrders, updateOrderStatus } from '../../store/slices/orderSlice';
+import { restaurant as restaurantService } from '../../services/api';
 
 const OrdersPage = () => {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState([]);
+  const { orders: ordersList, loading, error } = useSelector((state) => state.orders);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState('desc');
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(false);
   
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const response = await orderService.getRestaurantOrders();
-        
-        // Mock data for development
-        const mockOrders = [
-          {
-            id: '12345',
-            customer: { name: 'John Doe', phone: '(123) 456-7890' },
-            items: [
-              { id: '101', name: 'Margherita Pizza', price: 14.99, quantity: 1 },
-              { id: '102', name: 'Garlic Bread', price: 5.99, quantity: 2 }
-            ],
-            subtotal: 26.97,
-            deliveryFee: 3.99,
-            tax: 2.47,
-            total: 33.43,
-            status: 'PENDING',
-            paymentStatus: 'PAID',
-            paymentMethod: 'Credit Card',
-            deliveryAddress: '123 Main St, Apt 4B, New York, NY 10001',
-            specialInstructions: 'Please include extra napkins',
-            createdAt: new Date().toISOString(),
-            estimatedDeliveryTime: new Date(Date.now() + 30 * 60000).toISOString() // 30 min from now
-          },
-          {
-            id: '12344',
-            customer: { name: 'Jane Smith', phone: '(456) 789-0123' },
-            items: [
-              { id: '103', name: 'Pepperoni Pizza', price: 16.99, quantity: 1 },
-              { id: '104', name: 'Chicken Wings', price: 12.99, quantity: 1 },
-              { id: '105', name: 'Soda', price: 2.99, quantity: 2 }
-            ],
-            subtotal: 35.96,
-            deliveryFee: 3.99,
-            tax: 3.20,
-            total: 43.15,
-            status: 'PREPARING',
-            paymentStatus: 'PAID',
-            paymentMethod: 'PayPal',
-            deliveryAddress: '456 Elm St, Brooklyn, NY 11201',
-            specialInstructions: '',
-            createdAt: new Date(Date.now() - 15 * 60000).toISOString(), // 15 min ago
-            estimatedDeliveryTime: new Date(Date.now() + 15 * 60000).toISOString() // 15 min from now
-          },
-          {
-            id: '12343',
-            customer: { name: 'Bob Johnson', phone: '(789) 012-3456' },
-            items: [
-              { id: '106', name: 'Caesar Salad', price: 8.99, quantity: 1 },
-              { id: '107', name: 'Lasagna', price: 18.99, quantity: 1 }
-            ],
-            subtotal: 27.98,
-            deliveryFee: 3.99,
-            tax: 2.56,
-            total: 34.53,
-            status: 'READY_FOR_PICKUP',
-            paymentStatus: 'PAID',
-            paymentMethod: 'Credit Card',
-            deliveryAddress: '789 Oak St, Queens, NY 11354',
-            specialInstructions: 'No utensils needed',
-            createdAt: new Date(Date.now() - 45 * 60000).toISOString(), // 45 min ago
-            estimatedDeliveryTime: new Date(Date.now() + 5 * 60000).toISOString() // 5 min from now
-          },
-          {
-            id: '12342',
-            customer: { name: 'Alice Brown', phone: '(321) 654-9870' },
-            items: [
-              { id: '108', name: 'Spaghetti Carbonara', price: 13.99, quantity: 2 }
-            ],
-            subtotal: 27.98,
-            deliveryFee: 3.99,
-            tax: 2.56,
-            total: 34.53,
-            status: 'OUT_FOR_DELIVERY',
-            paymentStatus: 'PAID',
-            paymentMethod: 'Cash on Delivery',
-            deliveryAddress: '321 Pine St, Bronx, NY 10451',
-            specialInstructions: '',
-            createdAt: new Date(Date.now() - 60 * 60000).toISOString(), // 60 min ago
-            estimatedDeliveryTime: new Date(Date.now() - 10 * 60000).toISOString() // 10 min ago (overdue)
-          },
-          {
-            id: '12341',
-            customer: { name: 'Tom Wilson', phone: '(654) 987-0123' },
-            items: [
-              { id: '109', name: 'Chicken Alfredo', price: 15.99, quantity: 1 },
-              { id: '110', name: 'Tiramisu', price: 8.99, quantity: 1 },
-              { id: '111', name: 'Iced Tea', price: 3.99, quantity: 1 }
-            ],
-            subtotal: 28.97,
-            deliveryFee: 3.99,
-            tax: 2.63,
-            total: 35.59,
-            status: 'DELIVERED',
-            paymentStatus: 'PAID',
-            paymentMethod: 'Credit Card',
-            deliveryAddress: '654 Maple St, Manhattan, NY 10001',
-            specialInstructions: 'Leave at door',
-            createdAt: new Date(Date.now() - 120 * 60000).toISOString(), // 2 hours ago
-            deliveredAt: new Date(Date.now() - 75 * 60000).toISOString() // 75 min ago
-          },
-          {
-            id: '12340',
-            customer: { name: 'Sarah Davis', phone: '(987) 654-3210' },
-            items: [
-              { id: '112', name: 'Veggie Pizza', price: 15.99, quantity: 1 },
-              { id: '113', name: 'Garden Salad', price: 7.99, quantity: 1 }
-            ],
-            subtotal: 23.98,
-            deliveryFee: 3.99,
-            tax: 2.24,
-            total: 30.21,
-            status: 'CANCELLED',
-            paymentStatus: 'REFUNDED',
-            paymentMethod: 'Credit Card',
-            deliveryAddress: '987 Cedar St, Staten Island, NY 10301',
-            specialInstructions: '',
-            createdAt: new Date(Date.now() - 180 * 60000).toISOString(), // 3 hours ago
-            cancelledAt: new Date(Date.now() - 175 * 60000).toISOString() // 175 min ago
-          }
-        ];
-        
-        setOrders(response?.data || mockOrders);
-        setFilteredOrders(response?.data || mockOrders);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        toast.error('Failed to load orders');
-      } finally {
-        setLoading(false);
+    // Fetch orders for the restaurant
+    // If user is a restaurant owner, get their restaurant ID from the user object
+    const restaurantId = user?.restaurantId;
+    
+    if (restaurantId) {
+      dispatch(fetchRestaurantOrders({ restaurantId }));
+      
+      // Fetch menu items for the restaurant
+      fetchMenuItems(restaurantId);
+    } else {
+      // If no restaurant ID is available, show an error
+      toast.error('No restaurant ID found. Please check your account settings.');
+    }
+  }, [dispatch, user]);
+  
+  const fetchMenuItems = async (restaurantId) => {
+    try {
+      setMenuLoading(true);
+      const response = await restaurantService.getMenuAll(restaurantId);
+      if (response && response.data) {
+        setMenuItems(response.data);
       }
-    };
-
-    fetchOrders();
-  }, []);
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+      toast.error('Failed to load menu items');
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+  
+  // Show error toast if API request fails
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   useEffect(() => {
     // Apply filters and sorting
-    let result = [...orders];
+    let result = [...ordersList];
     
     // Filter by status
     if (statusFilter !== 'all') {
@@ -167,10 +70,10 @@ const OrdersPage = () => {
     if (searchTerm) {
       const lowercaseSearch = searchTerm.toLowerCase();
       result = result.filter(order => 
-        order.id.toLowerCase().includes(lowercaseSearch) ||
-        order.customer.name.toLowerCase().includes(lowercaseSearch) ||
-        order.customer.phone.toLowerCase().includes(lowercaseSearch) ||
-        order.items.some(item => item.name.toLowerCase().includes(lowercaseSearch))
+        order.id.toString().toLowerCase().includes(lowercaseSearch) ||
+        (order.customer?.name && order.customer.name.toLowerCase().includes(lowercaseSearch)) ||
+        (order.customer?.phone && order.customer.phone.toLowerCase().includes(lowercaseSearch)) ||
+        (order.items && order.items.some(item => item.name.toLowerCase().includes(lowercaseSearch)))
       );
     }
     
@@ -184,8 +87,8 @@ const OrdersPage = () => {
           valB = b.id;
           break;
         case 'customer':
-          valA = a.customer.name;
-          valB = b.customer.name;
+          valA = a.customer?.name || '';
+          valB = b.customer?.name || '';
           break;
         case 'total':
           valA = a.total;
@@ -206,7 +109,7 @@ const OrdersPage = () => {
     });
     
     setFilteredOrders(result);
-  }, [orders, statusFilter, searchTerm, sortField, sortDirection]);
+  }, [ordersList, statusFilter, searchTerm, sortField, sortDirection]);
 
   const handleSort = (field) => {
     if (field === sortField) {
@@ -219,26 +122,17 @@ const OrdersPage = () => {
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
-      setLoading(true);
-      
-      // In a real app, you would call your API
-      // await orderService.updateOrderStatus(orderId, newStatus);
-      
-      // Update local state
-      setOrders(orders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
-      ));
-      
+      // Dispatch the updateOrderStatus action
+      await dispatch(updateOrderStatus({ orderId, status: newStatus })).unwrap();
       toast.success(`Order #${orderId} updated to ${formatStatus(newStatus)}`);
     } catch (error) {
       console.error('Error updating order status:', error);
       toast.error('Failed to update order status');
-    } finally {
-      setLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'Not available';
     const options = {
       month: 'short',
       day: 'numeric',
@@ -246,6 +140,28 @@ const OrdersPage = () => {
       minute: '2-digit'
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+  
+  const calculateSubtotal = (items) => {
+    if (!items || !Array.isArray(items)) return 0;
+    return items.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0);
+  };
+  
+  const formatPaymentMethod = (method) => {
+    if (!method) return 'Unknown';
+    return method.replace('_', ' ').replace(/\w\S*/g, (txt) => {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  };
+  
+  const getMenuItemName = (menuItemId) => {
+    if (!menuItemId || !menuItems || !menuItems.length) return `Menu Item #${menuItemId}`;
+    
+    const menuItem = menuItems.find(item => item.id === menuItemId);
+    if (menuItem) {
+      return menuItem.name;
+    }
+    return `Menu Item #${menuItemId}`;
   };
 
   const formatStatus = (status) => {
@@ -436,11 +352,11 @@ const OrdersPage = () => {
                         #{order.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {order.customer.name}
-                        <p className="text-gray-500 text-xs">{order.customer.phone}</p>
+                        User ID: {order.userId || 'Unknown'}
+                        <p className="text-gray-500 text-xs">Order #{order.id}</p>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${order.total.toFixed(2)}
+                        ${(order.totalAmount || 0).toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -451,7 +367,7 @@ const OrdersPage = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(order.createdAt)}
+                        {formatDate(order.orderTime)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {getNextStatusOptions(order.status).length > 0 ? (
@@ -502,19 +418,19 @@ const OrdersPage = () => {
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-gray-200">
-                                    {order.items.map((item) => (
-                                      <tr key={item.id}>
+                                    {order.orderItems && order.orderItems.map((item) => (
+                                      <tr key={item.id || index}>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                          {item.name}
+                                          {getMenuItemName(item.menuItemId)}
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                          ${item.price.toFixed(2)}
+                                          ${(item.price || 0).toFixed(2)}
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                          {item.quantity}
+                                          {item.quantity || 1}
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                          ${(item.price * item.quantity).toFixed(2)}
+                                          ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
                                         </td>
                                       </tr>
                                     ))}
@@ -525,7 +441,7 @@ const OrdersPage = () => {
                                         Subtotal:
                                       </td>
                                       <td className="px-4 py-2 text-sm text-gray-900">
-                                        ${order.subtotal.toFixed(2)}
+                                        ${calculateSubtotal(order.orderItems).toFixed(2)}
                                       </td>
                                     </tr>
                                     <tr>
@@ -533,7 +449,7 @@ const OrdersPage = () => {
                                         Delivery Fee:
                                       </td>
                                       <td className="px-4 py-2 text-sm text-gray-900">
-                                        ${order.deliveryFee.toFixed(2)}
+                                        $0.00
                                       </td>
                                     </tr>
                                     <tr>
@@ -541,7 +457,7 @@ const OrdersPage = () => {
                                         Tax:
                                       </td>
                                       <td className="px-4 py-2 text-sm text-gray-900">
-                                        ${order.tax.toFixed(2)}
+                                        $0.00
                                       </td>
                                     </tr>
                                     <tr>
@@ -549,7 +465,7 @@ const OrdersPage = () => {
                                         Total:
                                       </td>
                                       <td className="px-4 py-2 text-sm font-bold text-gray-900">
-                                        ${order.total.toFixed(2)}
+                                        ${(order.totalAmount || 0).toFixed(2)}
                                       </td>
                                     </tr>
                                   </tfoot>
@@ -562,31 +478,15 @@ const OrdersPage = () => {
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Delivery Information</h3>
                                 <div className="bg-white rounded-md shadow-sm p-4">
                                   <p className="text-sm text-gray-700 mb-2">
-                                    <span className="font-medium">Address:</span> {order.deliveryAddress}
+                                    <span className="font-medium">Address:</span> {order.deliveryAddress || 'No address provided'}
                                   </p>
-                                  {order.specialInstructions && (
-                                    <p className="text-sm text-gray-700">
-                                      <span className="font-medium">Special Instructions:</span> {order.specialInstructions}
-                                    </p>
-                                  )}
-                                  {order.estimatedDeliveryTime && (
-                                    <p className="text-sm text-gray-700 mt-2">
-                                      <span className="font-medium">Estimated Delivery:</span> {formatDate(order.estimatedDeliveryTime)}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Payment Information</h3>
-                                <div className="bg-white rounded-md shadow-sm p-4">
                                   <p className="text-sm text-gray-700 mb-2">
-                                    <span className="font-medium">Method:</span> {order.paymentMethod}
+                                    <span className="font-medium">Method:</span> {formatPaymentMethod(order.paymentMethod) || 'Unknown'}
                                   </p>
                                   <p className="text-sm text-gray-700">
                                     <span className="font-medium">Status:</span>{' '}
-                                    <span className={order.paymentStatus === 'PAID' ? 'text-green-600' : 'text-red-600'}>
-                                      {order.paymentStatus}
+                                    <span className={order.isPaid ? 'text-green-600' : 'text-red-600'}>
+                                      {order.isPaid ? 'PAID' : 'UNPAID'}
                                     </span>
                                   </p>
                                 </div>

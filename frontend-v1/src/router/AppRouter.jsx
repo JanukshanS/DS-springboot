@@ -28,12 +28,10 @@ import OrderHistoryPage from './../pages/OrderHistoryPage';
 import OrderDetailsPage from './../pages/user/OrderDetailsPage';
 import AddressesPage from './../pages/user/AddressesPage';
 import PaymentMethodsPage from './../pages/user/PaymentMethodsPage';
+import PaymentSuccessPage from './../pages/user/PaymentSuccessPage';
 
 // Protected Restaurant Admin Pages
-import RestaurantDashboard from './../pages/restaurant/DashboardPage';
-import RestaurantMenu from './../pages/restaurant/MenuPage';
-import RestaurantOrders from './../pages/restaurant/OrdersPage';
-import RestaurantSettings from './../pages/restaurant/SettingsPage';
+import RestaurantRoutes from "./routes/Restaurant_routes";
 
 // Protected Delivery Personnel Pages
 import DeliveryDashboard from './../pages/delivery/DashboardPage';
@@ -96,11 +94,12 @@ const AppRouter = () => {
           <Route path="orders/:id" element={<OrderDetailsPage />} />
           <Route path="addresses" element={<AddressesPage />} />
           <Route path="payment-methods" element={<PaymentMethodsPage />} />
+          <Route path="paymentDone" element={<PaymentSuccessPage />} />
         </Route>
 
         {/* Protected Restaurant Admin Routes */}
         <Route
-          path="/restaurant-admin"
+          path="/restaurant-admin/*"
           element={
             <ProtectedRoute>
               {user && user.role === "RESTAURANT_ADMIN" ? (
@@ -111,10 +110,7 @@ const AppRouter = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="dashboard" element={<RestaurantDashboard />} />
-          <Route path="menu" element={<RestaurantMenu />} />
-          <Route path="orders" element={<RestaurantOrders />} />
-          <Route path="settings" element={<RestaurantSettings />} />
+          <Route path="*" element={<RestaurantRoutes />} />
         </Route>
 
         {/* Protected Delivery Personnel Routes */}

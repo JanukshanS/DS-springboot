@@ -14,7 +14,8 @@ import {
   ListBulletIcon as ViewListIcon,
   SquaresPlusIcon as TemplateIcon,
   TruckIcon,
-} from "@heroicons/react/24/outline";
+  ChartBarIcon
+  } from '@heroicons/react/24/outline';
 import { logout } from "../../store/slices/authSlice";
 import Logo from "../common/Logo";
 
@@ -37,20 +38,22 @@ const DashboardLayout = () => {
 
   // Get role-specific navigation items
   const getNavItems = () => {
-    if (user?.role === "RESTAURANT_ADMIN") {
+    if (user?.role === 'RESTAURANT_ADMIN') {
+      // Get restaurant ID from user data or default to empty
+      const restaurantId = user?.restaurantId || '';
+
+      //if user has a restaurantId, skip the manage restaurants link
+      if (restaurantId) {
+        return [
+          { name: 'Dashboard', href: `/restaurant-admin/${restaurantId}/dashboard`, icon: HomeIcon },
+          { name: 'Menu Management', href: `/restaurant-admin/${restaurantId}/menu`, icon: ViewListIcon },
+          { name: 'Orders', href: `/restaurant-admin/${restaurantId}/orders`, icon: ClockIcon },
+          { name: 'Analytics', href: `/restaurant-admin/${restaurantId}/analytics`, icon: ChartBarIcon },
+          { name: 'Settings', href: `/restaurant-admin/${restaurantId}/settings`, icon: CogIcon },
+        ];
+      }
       return [
-        {
-          name: "Dashboard",
-          href: "/restaurant-admin/dashboard",
-          icon: HomeIcon,
-        },
-        {
-          name: "Menu Management",
-          href: "/restaurant-admin/menu",
-          icon: ViewListIcon,
-        },
-        { name: "Orders", href: "/restaurant-admin/orders", icon: ClockIcon },
-        { name: "Settings", href: "/restaurant-admin/settings", icon: CogIcon },
+        { name: 'Manage Restaurants', href: '/restaurant-admin/manage/create', icon: CogIcon },
       ];
     } else if (user?.role === "DELIVERY_PERSONNEL") {
       return [
@@ -59,11 +62,6 @@ const DashboardLayout = () => {
           name: "Current Order",
           href: "/delivery/current-order",
           icon: TruckIcon,
-        },
-        {
-          name: "Available Orders",
-          href: "/delivery/available-orders",
-          icon: ClockIcon,
         },
         {
           name: "Order History",

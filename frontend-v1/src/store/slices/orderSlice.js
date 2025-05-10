@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 import { order as orderService } from '../../services/api';
+import API_CONFIG from '../../config/api.config';
+
+const ORDER_SERVICE_URL = API_CONFIG.order.baseUrl;
 
 // Async thunks for order operations
 export const createOrder = createAsyncThunk(
@@ -30,6 +34,20 @@ export const fetchOrders = createAsyncThunk(
   }
 );
 
+export const fetchRestaurantOrders = createAsyncThunk(
+  'orders/fetchRestaurantOrders',
+  async ({ restaurantId, params = {} }, { rejectWithValue }) => {
+    try {
+      const response = await orderService.getRestaurantOrders(restaurantId, params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch restaurant orders.'
+      );
+    }
+  }
+);
+
 export const fetchOrderDetails = createAsyncThunk(
   'orders/fetchOrderDetails',
   async (id, { rejectWithValue }) => {
@@ -53,6 +71,28 @@ export const cancelOrder = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to cancel order.'
+      );
+    }
+  }
+);
+
+export const updateOrderStatus = createAsyncThunk(
+  'orders/updateOrderStatus',
+  async ({ orderId, status }, { rejectWithValue }) => {
+    try {
+      // Create the request body according to the API requirements
+      const updateRequest = { status };
+      // Call the API endpoint to update the order status
+      const response = await axios.put(`${ORDER_SERVICE_URL}/api/orders/${orderId}/status`, updateRequest, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update order status.'
       );
     }
   }
@@ -130,6 +170,28 @@ const orderSlice = createSlice({
         state.error = action.payload || 'Something went wrong';
       })
       
+      // Fetch restaurant orders
+      .addCase(fetchRestaurantOrders.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRestaurantOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = action.payload.items || action.payload;
+        
+        // Update pagination if available
+        if (action.payload.pagination) {
+          state.pagination = {
+            ...state.pagination,
+            ...action.payload.pagination,
+          };
+        }
+      })
+      .addCase(fetchRestaurantOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Something went wrong';
+      })
+      
       // Fetch order details
       .addCase(fetchOrderDetails.pending, (state) => {
         state.loading = true;
@@ -166,6 +228,32 @@ const orderSlice = createSlice({
         state.success = 'Order cancelled successfully!';
       })
       .addCase(cancelOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Something went wrong';
+      })
+      
+      // Update order status
+      .addCase(updateOrderStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = null;
+      })
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        
+        // Update the current order if it matches the updated order
+        if (state.currentOrder && state.currentOrder.id === action.payload.id) {
+          state.currentOrder = action.payload;
+        }
+        
+        // Update the order in the orders list
+        state.orders = state.orders.map(order => 
+          order.id === action.payload.id ? action.payload : order
+        );
+        
+        state.success = 'Order status updated successfully!';
+      })
+      .addCase(updateOrderStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Something went wrong';
       });
