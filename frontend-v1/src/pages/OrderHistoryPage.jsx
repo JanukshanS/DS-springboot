@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiClock, FiCheckCircle, FiXCircle, FiTruck, FiPackage, FiRefreshCw, FiSearch, FiChevronLeft, FiChevronRight, FiDownload } from 'react-icons/fi';
 import axios from 'axios';
 import { jsPDF } from 'jspdf';
+import {autoTable} from 'jspdf-autotable';
 import 'jspdf-autotable';
 
 const OrderHistoryPage = () => {
@@ -13,6 +14,7 @@ const OrderHistoryPage = () => {
   const [showStepper, setShowStepper] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,7 +147,7 @@ const OrderHistoryPage = () => {
     ];
     
     // Generate table
-    doc.autoTable({
+    autoTable(doc,{
       head: headers,
       body: tableData,
       startY: 40,
@@ -257,7 +259,10 @@ const OrderHistoryPage = () => {
                       </button>
                       <button
                         className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
-                        onClick={() => setSelectedOrder(order)}
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowDetailsDialog(true);
+                        }}
                       >
                         View Details
                       </button>
@@ -302,6 +307,72 @@ const OrderHistoryPage = () => {
           )}
         </>
       )}
+      {showDetailsDialog && selectedOrder && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-white rounded-lg shadow-lg w-3/4 max-w-3xl p-6">
+          <h2 className="text-2xl font-bold mb-4">Order Details #{selectedOrder.id}</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Order Information</h3>
+              <div className="space-y-2">
+                <p><span className="font-medium">Date:</span> {formatDate(selectedOrder.orderTime)}</p>
+                <p className="flex items-center gap-2">
+                  <span className="font-medium">Status:</span> 
+                  {getStatusIcon(selectedOrder.status)}
+                  <span className="capitalize">{selectedOrder.status.replace(/_/g, ' ').toLowerCase()}</span>
+                </p>
+                <p><span className="font-medium">Total:</span> ${selectedOrder.totalAmount.toFixed(2)}</p>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Items</h3>
+              <div className="border rounded-lg overflow-hidden">
+                <table className="min-w-full">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="py-2 px-4 text-left">Item</th>
+                      <th className="py-2 px-4 text-left">Qty</th>
+                      <th className="py-2 px-4 text-left">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedOrder.items?.map((item, index) => (
+                      <tr key={index} className="border-t">
+                        <td className="py-2 px-4">{item.productName}</td>
+                        <td className="py-2 px-4">{item.quantity}</td>
+                        <td className="py-2 px-4">${item.price.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center border-t pt-4">
+            <div>
+              {(selectedOrder.status === 'PENDING' || selectedOrder.status === 'CONFIRMED') && (
+                <button
+                  onClick={() => setShowConfirmDialog(true)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2"
+                >
+                  <FiXCircle /> Cancel Order
+                </button>
+              )}
+            </div>
+            
+            <button
+              onClick={() => setShowDetailsDialog(false)}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
       {/* Stepper Modal */}
       {showStepper && selectedOrder && (
