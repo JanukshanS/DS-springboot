@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiEdit2, FiSettings, FiMapPin, FiPhone, FiMail, FiGlobe, FiClock } from 'react-icons/fi';
-import { fetchRestaurantDetails } from '../../store/slices/restaurantSlice';
-import { toast } from 'react-toastify';
+import { FiEdit2, FiSettings, FiMapPin, FiPhone, FiMail, FiGlobe, FiClock, FiUpload, FiImage, FiCheck } from 'react-icons/fi';
+import { fetchRestaurantDetails, updateRestaurant } from '../../store/slices/restaurantSlice';
+import toast from 'react-hot-toast';
+import { uploadImage } from '../../services/ImageService';
 
 const SettingsPage = () => {
   const dispatch = useDispatch();
@@ -11,6 +12,10 @@ const SettingsPage = () => {
   const { restaurantId } = useParams();
   const { currentRestaurant, loading } = useSelector((state) => state.restaurants);
   const [activeTab, setActiveTab] = useState('general');
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Fetch restaurant details when component mounts
   useEffect(() => {
@@ -23,6 +28,85 @@ const SettingsPage = () => {
   const handleEditRestaurant = () => {
     if (restaurantId) {
       navigate(`/restaurant-admin/manage/${restaurantId}/edit`);
+    }
+  };
+  
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // Trigger file input click
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
+  };
+  
+  // Upload image to Cloudinary and update restaurant
+  const handleImageUpload = async () => {
+    if (!imageFile) {
+      toast.error('Please select an image first');
+      return;
+    }
+    
+    try {
+      setUploading(true);
+      
+      // Step 1: Upload the image to Cloudinary using our service
+      const imageUrl = await uploadImage(imageFile, 'restaurant_images');
+      
+      if (!imageUrl) {
+        throw new Error('Failed to get image URL from Cloudinary');
+      }
+      
+      // Step 2: Make sure we have the current restaurant data
+      if (!currentRestaurant) {
+        throw new Error('Restaurant data not found');
+      }
+      
+      // Step 3: Create a copy of the current restaurant data and update only the imageUrl
+      const updatedRestaurantData = {
+        // Copy all existing fields to preserve them
+        name: currentRestaurant.name || '',
+        description: currentRestaurant.description || '',
+        address: currentRestaurant.address || '',
+        phoneNumber: currentRestaurant.phoneNumber || '',
+        email: currentRestaurant.email || '',
+        cuisineType: currentRestaurant.cuisineType || '',
+        openingHours: currentRestaurant.openingHours || '',
+        averageRating: currentRestaurant.averageRating,
+        isActive: currentRestaurant.isActive,
+        
+        // Update only the image URL with the Cloudinary URL
+        imageUrl: imageUrl
+      };
+      
+      // Step 4: Update the restaurant with all fields preserved
+      await dispatch(updateRestaurant({
+        id: restaurantId,
+        restaurantData: updatedRestaurantData
+      })).unwrap();
+      
+      toast.success('Restaurant image updated successfully');
+      setImageFile(null);
+      setPreviewUrl('');
+      
+      // Step 5: Refresh restaurant details to show the updated image
+      dispatch(fetchRestaurantDetails({ id: restaurantId, isDashboard: true }));
+    } catch (error) {
+      console.error('Error updating restaurant image:', error);
+      toast.error(error.message || 'Failed to update restaurant image');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -38,6 +122,85 @@ const SettingsPage = () => {
           <FiEdit2 className="h-5 w-5" />
           Edit Restaurant Profile
         </button>
+      </div>
+      
+      {/* Image Upload Section */}
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h3 className="text-lg font-semibold mb-4">Restaurant Image</h3>
+        
+        <div className="flex flex-col md:flex-row items-start gap-6">
+          {/* Current Image or Preview */}
+          <div className="w-full md:w-1/3 mb-4 md:mb-0">
+            <div className="bg-gray-100 rounded-lg overflow-hidden h-48 w-full flex items-center justify-center">
+              {previewUrl ? (
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                />
+              ) : currentRestaurant?.imageUrl ? (
+                <img 
+                  src={currentRestaurant.imageUrl} 
+                  alt={currentRestaurant.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <FiImage className="h-16 w-16 text-gray-400" />
+              )}
+            </div>
+          </div>
+          
+          {/* Upload Controls */}
+          <div className="w-full md:w-2/3">
+            <p className="text-gray-600 mb-4">
+              Upload a high-quality image of your restaurant. This image will be displayed to customers browsing the platform.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              
+              <button
+                onClick={handleUploadClick}
+                className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md"
+              >
+                <FiUpload className="h-5 w-5" />
+                Select Image
+              </button>
+              
+              {imageFile && (
+                <button
+                  onClick={handleImageUpload}
+                  disabled={uploading}
+                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {uploading ? (
+                    <>
+                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-1"></span>
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <FiCheck className="h-5 w-5" />
+                      Upload & Save
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+            
+            {imageFile && (
+              <p className="mt-2 text-sm text-gray-500">
+                Selected: {imageFile.name} ({Math.round(imageFile.size / 1024)} KB)
+              </p>
+            )}
+          </div>
+        </div>
       </div>
       
       {loading ? (

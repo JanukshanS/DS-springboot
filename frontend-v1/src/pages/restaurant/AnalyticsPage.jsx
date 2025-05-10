@@ -5,8 +5,7 @@ import {
   FiDollarSign, 
   FiShoppingBag, 
   FiClock, 
-  FiCalendar,
-  FiFilter
+  FiUser,
 } from 'react-icons/fi';
 import {
   LineChart,

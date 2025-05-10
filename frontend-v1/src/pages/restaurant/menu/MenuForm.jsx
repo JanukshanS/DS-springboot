@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiImage, FiClock, FiDollarSign } from 'react-icons/fi';
+import { FiImage, FiClock, FiDollarSign, FiUpload } from 'react-icons/fi';
+import { uploadImage as uploadImageService } from '../../../services/ImageService';
 
 const MenuForm = ({
   initialData = null,
@@ -14,7 +15,7 @@ const MenuForm = ({
     description: '',
     price: '',
     category: '',
-    image: null,
+    imageUrl: '',
     isAvailable: true,
     preparationTime: 15,
   });
@@ -23,6 +24,9 @@ const MenuForm = ({
   const [customCategory, setCustomCategory] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -30,60 +34,73 @@ const MenuForm = ({
         description: initialData.description || '',
         price: initialData.price?.toString() || '',
         category: initialData.category || '',
-        image: null, // Don't pre-fill file input
+        imageUrl: initialData.imageUrl || '',
         isAvailable: initialData.isAvailable !== undefined ? initialData.isAvailable : true,
         preparationTime: initialData.preparationTime?.toString() || '15',
       });
-      setImagePreview(initialData.imageUrl || null); // Show existing image preview
-      setFormErrors({}); // Clear errors when loading new data
+      setImagePreview(initialData.imageUrl || null);
     } else {
-      // Reset form for 'new item' case
       setFormData({
         name: '',
         description: '',
         price: '',
         category: categories.length > 0 ? categories[0].id : '',
-        image: null,
+        imageUrl: '',
         isAvailable: true,
         preparationTime: 15,
       });
       setImagePreview(null);
-      setFormErrors({});
     }
-  }, [initialData, categories]); // Rerun when initialData or categories change
+    setFormErrors({});
+  }, [initialData, categories]);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadError(null);
+
+    try {
+      const uploadedUrl = await uploadImageService(file);
+      console.log('Image uploaded successfully:', uploadedUrl);
+      
+      setFormData(prev => ({
+        ...prev,
+        imageUrl: uploadedUrl
+      }));
+      
+      setImagePreview(uploadedUrl);
+      
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setUploadError('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleFormChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
+    const { name, value, type, checked } = e.target;
     
-    if (type === 'file' && files && files[0]) {
-      // Handle file upload and preview
-      setFormData(prev => ({ ...prev, [name]: files[0] }));
-      
-      // Create image preview
-      const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target.result);
-      reader.readAsDataURL(files[0]);
+    if (type === 'file') {
+      handleImageChange(e);
     } else if (type === 'checkbox') {
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else if (name === 'category' && value === 'new') {
-      // Handle selecting the "Add new category" option
       setIsNewCategory(true);
-      // Don't update formData yet - wait for custom input
     } else if (name === 'customCategory') {
-      // Handle custom category input
       setCustomCategory(value);
       setFormData(prev => ({ ...prev, category: value }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
       
-      // If changing category back to a predefined one, reset custom category state
       if (name === 'category' && isNewCategory) {
         setIsNewCategory(false);
         setCustomCategory('');
       }
     }
 
-    // Clear field error when changing
     if (formErrors[name]) {
       setFormErrors({
         ...formErrors,
@@ -112,7 +129,6 @@ const MenuForm = ({
       errors.category = 'Category is required';
     }
 
-    // Validate preparation time (optional, but if present should be non-negative integer)
     if (formData.preparationTime && (isNaN(parseInt(formData.preparationTime)) || parseInt(formData.preparationTime) < 0)) {
         errors.preparationTime = 'Preparation time must be a non-negative number';
     }
@@ -121,18 +137,29 @@ const MenuForm = ({
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
     }
-    // Convert price and prep time back to numbers before submitting
-    const dataToSubmit = {
-        ...formData,
+    
+    try {
+      const dataToSubmit = {
+        name: formData.name,
+        description: formData.description,
         price: parseFloat(formData.price),
-        preparationTime: parseInt(formData.preparationTime) || 0, // Default to 0 if empty/invalid
-    };
-    onSubmit(dataToSubmit); // Pass validated and formatted data to parent
+        category: formData.category,
+        preparationTime: parseInt(formData.preparationTime) || 0,
+        isAvailable: formData.isAvailable,
+        imageUrl: formData.imageUrl
+      };
+      
+      console.log('Submitting menu item with data:', dataToSubmit);
+      onSubmit(dataToSubmit);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setFormErrors(prev => ({ ...prev, submit: 'An error occurred. Please try again.' }));
+    }
   };
 
   return (
@@ -221,7 +248,6 @@ const MenuForm = ({
                   type="button"
                   onClick={() => {
                     setIsNewCategory(false);
-                    // If they didn't enter anything, reset category
                     if (!customCategory.trim()) {
                       setFormData(prev => ({ ...prev, category: '' }));
                     }
@@ -341,7 +367,7 @@ const MenuForm = ({
                   <FiImage className="h-10 w-10 text-gray-400" />
                 )}
               </div>
-              <div className="flex-grow flex justify-center px-6 py-5 border-2 border-gray-300 border-dashed rounded-md">
+              <div className="flex-grow flex justify-center px-6 py-5 border-2 border-gray-300 border-dashed rounded-md hover:border-orange-500 transition-colors">
                 <div className="space-y-1 text-center">
                   <FiImage className="mx-auto h-8 w-8 text-gray-400" />
                   <div className="flex text-sm text-gray-600">
@@ -349,14 +375,15 @@ const MenuForm = ({
                       htmlFor="image"
                       className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500 px-1"
                     >
-                      <span>Upload a file</span>
+                      <span>{uploadingImage ? 'Uploading...' : 'Upload a file'}</span>
                       <input
                         id="image"
                         name="image"
                         type="file"
-                        accept="image/png, image/jpeg, image/gif"
                         className="sr-only"
-                        onChange={handleFormChange}
+                        accept="image/png, image/jpeg, image/gif"
+                        onChange={handleImageChange}
+                        disabled={uploadingImage}
                       />
                     </label>
                     <p className="pl-1">or drag and drop</p>
@@ -364,17 +391,25 @@ const MenuForm = ({
                   <p className="text-xs text-gray-500">
                     PNG, JPG, GIF up to 10MB
                   </p>
-                  {formData.image && (
-                    <p className="text-xs text-green-600 truncate max-w-xs mx-auto">
-                      Selected: {formData.image.name}
-                    </p>
+                  {uploadingImage && (
+                    <div className="flex items-center justify-center mt-2">
+                      <span className="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full mr-2"></span>
+                      <span className="text-sm text-gray-600">Uploading...</span>
+                    </div>
+                  )}
+                  {formData.imageUrl && !uploadingImage && (
+                    <div className="flex items-center justify-center mt-2">
+                      <span className="text-xs text-green-600">
+                        Image uploaded successfully
+                      </span>
+                    </div>
+                  )}
+                  {uploadError && (
+                    <p className="mt-2 text-sm text-red-600">{uploadError}</p>
                   )}
                 </div>
               </div>
             </div>
-            {formErrors.image && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.image}</p>
-            )}
           </div>
 
           {/* Availability */}

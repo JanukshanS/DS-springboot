@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiShoppingBag, FiUsers, FiClock } from 'react-icons/fi';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-// import { restaurantService, order as orderService } from '../../services/api';
+import { restaurant as restaurantService, order as orderService } from '../../services/api';
+import { fetchRestaurantOrders } from '../../store/slices/orderSlice';
+import toast from 'react-hot-toast';
 
 // Register ChartJS components
 ChartJS.register(
@@ -19,7 +21,9 @@ ChartJS.register(
 );
 
 const DashboardPage = () => {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { orders: ordersList, loading: ordersLoading } = useSelector((state) => state.orders);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -29,99 +33,256 @@ const DashboardPage = () => {
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [timeRange, setTimeRange] = useState('week');
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(false);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        // In a real app, you would call your API
-        // const statsResponse = await restaurantService.getDashboardStats(timeRange);
-        // const ordersResponse = await orderService.getRecentOrders(5);
-        
-        // Mock data for development
-        const mockStats = {
-          totalRevenue: 5284.75,
-          orders: 98,
-          averageOrderValue: 53.92,
-          customers: 72,
-          revenueChange: 12.5,
-          ordersChange: 8.3,
-          topItems: [
-            { name: 'Margherita Pizza', qty: 42, revenue: 629.58 },
-            { name: 'Pepperoni Pizza', qty: 38, revenue: 645.62 },
-            { name: 'Garlic Bread', qty: 35, revenue: 209.65 },
-            { name: 'Chicken Wings', qty: 32, revenue: 415.68 },
-            { name: 'Caesar Salad', qty: 28, revenue: 251.72 }
-          ],
-          salesByDay: {
-            labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            data: [580.25, 620.50, 540.75, 690.30, 820.45, 1050.25, 982.25]
-          },
-          salesByHour: {
-            labels: ['11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm', '9pm', '10pm'],
-            data: [210.50, 350.75, 420.25, 320.50, 280.25, 310.50, 450.75, 520.25, 580.50, 630.25, 480.50, 290.25]
-          },
-          ordersByStatus: {
-            labels: ['Pending', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Delivered', 'Cancelled'],
-            data: [15, 12, 8, 10, 45, 8]
-          }
-        };
-        
-        const mockRecentOrders = [
-          {
-            id: '12345',
-            customer: 'John Doe',
-            total: 35.50,
-            status: 'DELIVERED',
-            items: 4,
-            createdAt: new Date(Date.now() - 35 * 60000).toISOString() // 35 min ago
-          },
-          {
-            id: '12344',
-            customer: 'Jane Smith',
-            total: 42.25,
-            status: 'OUT_FOR_DELIVERY',
-            items: 3,
-            createdAt: new Date(Date.now() - 50 * 60000).toISOString() // 50 min ago
-          },
-          {
-            id: '12343',
-            customer: 'Bob Johnson',
-            total: 28.99,
-            status: 'PREPARING',
-            items: 2,
-            createdAt: new Date(Date.now() - 70 * 60000).toISOString() // 70 min ago
-          },
-          {
-            id: '12342',
-            customer: 'Alice Brown',
-            total: 52.50,
-            status: 'PENDING',
-            items: 5,
-            createdAt: new Date(Date.now() - 85 * 60000).toISOString() // 85 min ago
-          },
-          {
-            id: '12341',
-            customer: 'Michael Wilson',
-            total: 18.75,
-            status: 'DELIVERED',
-            items: 1,
-            createdAt: new Date(Date.now() - 120 * 60000).toISOString() // 2 hours ago
-          }
-        ];
-        
-        setStats(mockStats);
-        setRecentOrders(mockRecentOrders);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
+    // Fetch orders for the restaurant
+    const restaurantId = user?.restaurantId;
+    
+    if (restaurantId) {
+      // Fetch orders using Redux
+      dispatch(fetchRestaurantOrders({ restaurantId }));
+      
+      // Fetch menu items
+      fetchMenuItems(restaurantId);
+    } else {
+      toast.error('No restaurant ID found. Please check your account settings.');
+      setLoading(false);
+    }
+  }, [dispatch, user]);
+  
+  // Process orders data when it changes
+  useEffect(() => {
+    if (!ordersLoading && ordersList && ordersList.length > 0) {
+      processOrdersData(ordersList);
+    }
+  }, [ordersLoading, ordersList, timeRange]);
+  
+  const fetchMenuItems = async (restaurantId) => {
+    try {
+      setMenuLoading(true);
+      const response = await restaurantService.getMenuAll(restaurantId);
+      if (response && response.data) {
+        setMenuItems(response.data);
       }
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+  
+  const processOrdersData = (orders) => {
+    try {
+      setLoading(true);
+      
+      // Filter orders based on time range
+      const filteredOrders = filterOrdersByTimeRange(orders, timeRange);
+      
+      // Calculate total revenue
+      const totalRevenue = filteredOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      
+      // Count unique customers
+      const uniqueCustomers = new Set(filteredOrders.map(order => order.userId)).size;
+      
+      // Calculate average order value
+      const averageOrderValue = filteredOrders.length > 0 ? totalRevenue / filteredOrders.length : 0;
+      
+      // Get order counts by status
+      const ordersByStatus = getOrderCountsByStatus(filteredOrders);
+      
+      // Get sales by day
+      const salesByDay = getSalesByDay(filteredOrders);
+      
+      // Get sales by hour
+      const salesByHour = getSalesByHour(filteredOrders);
+      
+      // Get top selling items
+      const topItems = getTopSellingItems(filteredOrders);
+      
+      // Get recent orders (last 5)
+      const recentOrdersData = getRecentOrders(orders, 5);
+      
+      // Set stats
+      setStats({
+        totalRevenue,
+        orders: filteredOrders.length,
+        averageOrderValue,
+        customers: uniqueCustomers,
+        revenueChange: calculateRevenueChange(orders, timeRange),
+        ordersChange: calculateOrdersChange(orders, timeRange),
+        topItems,
+        salesByDay,
+        salesByHour,
+        ordersByStatus
+      });
+      
+      setRecentOrders(recentOrdersData);
+    } catch (error) {
+      console.error('Error processing orders data:', error);
+      toast.error('Error processing dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const filterOrdersByTimeRange = (orders, range) => {
+    const now = new Date();
+    let startDate;
+    
+    switch (range) {
+      case 'today':
+        startDate = new Date(now.setHours(0, 0, 0, 0));
+        break;
+      case 'week':
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'month':
+        startDate = new Date(now);
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      default:
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 7);
+    }
+    
+    return orders.filter(order => new Date(order.orderTime) >= startDate);
+  };
+  
+  const getOrderCountsByStatus = (orders) => {
+    const statusCounts = {
+      'PENDING': 0,
+      'PREPARING': 0,
+      'READY_FOR_PICKUP': 0,
+      'OUT_FOR_DELIVERY': 0,
+      'DELIVERED': 0,
+      'CANCELLED': 0
     };
-
-    fetchDashboardData();
-  }, [timeRange]);
+    
+    orders.forEach(order => {
+      if (statusCounts.hasOwnProperty(order.status)) {
+        statusCounts[order.status]++;
+      }
+    });
+    
+    return {
+      labels: Object.keys(statusCounts).map(status => formatStatus(status)),
+      data: Object.values(statusCounts)
+    };
+  };
+  
+  const getSalesByDay = (orders) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const salesByDay = Array(7).fill(0);
+    
+    orders.forEach(order => {
+      const orderDate = new Date(order.orderTime);
+      const dayIndex = orderDate.getDay();
+      salesByDay[dayIndex] += (order.totalAmount || 0);
+    });
+    
+    // Reorder days to start with Monday
+    const mondayFirst = [...salesByDay.slice(1), salesByDay[0]];
+    const mondayFirstLabels = [...days.slice(1), days[0]];
+    
+    return {
+      labels: mondayFirstLabels,
+      data: mondayFirst
+    };
+  };
+  
+  const getSalesByHour = (orders) => {
+    const hours = Array.from({ length: 12 }, (_, i) => `${i + 11}${i + 11 > 12 ? 'pm' : 'am'}`);
+    const salesByHour = Array(12).fill(0);
+    
+    orders.forEach(order => {
+      const orderDate = new Date(order.orderTime);
+      const hour = orderDate.getHours();
+      
+      // Only count orders between 11am and 10pm (11-22)
+      if (hour >= 11 && hour <= 22) {
+        const index = hour - 11;
+        salesByHour[index] += (order.totalAmount || 0);
+      }
+    });
+    
+    return {
+      labels: hours,
+      data: salesByHour
+    };
+  };
+  
+  const getTopSellingItems = (orders) => {
+    const itemCounts = {};
+    
+    // Count occurrences of each menu item
+    orders.forEach(order => {
+      if (order.orderItems && Array.isArray(order.orderItems)) {
+        order.orderItems.forEach(item => {
+          const menuItemId = item.menuItemId;
+          if (!itemCounts[menuItemId]) {
+            itemCounts[menuItemId] = {
+              id: menuItemId,
+              qty: 0,
+              revenue: 0
+            };
+          }
+          itemCounts[menuItemId].qty += (item.quantity || 1);
+          itemCounts[menuItemId].revenue += (item.price || 0) * (item.quantity || 1);
+        });
+      }
+    });
+    
+    // Convert to array and sort by revenue
+    const topItems = Object.values(itemCounts)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+      .map(item => ({
+        ...item,
+        name: getMenuItemName(item.id)
+      }));
+    
+    return topItems;
+  };
+  
+  const getMenuItemName = (menuItemId) => {
+    if (!menuItemId || !menuItems || !menuItems.length) return `Menu Item #${menuItemId}`;
+    
+    const menuItem = menuItems.find(item => item.id === menuItemId);
+    if (menuItem) {
+      return menuItem.name;
+    }
+    return `Menu Item #${menuItemId}`;
+  };
+  
+  const getRecentOrders = (orders, limit) => {
+    // Create a copy of the array before sorting to avoid modifying the original array
+    return [...orders]
+      .sort((a, b) => new Date(b.orderTime) - new Date(a.orderTime))
+      .slice(0, limit)
+      .map(order => ({
+        id: order.id,
+        customer: `User #${order.userId}`,
+        total: order.totalAmount || 0,
+        status: order.status,
+        items: order.orderItems ? order.orderItems.length : 0,
+        createdAt: order.orderTime
+      }));
+  };
+  
+  const calculateRevenueChange = (orders, timeRange) => {
+    // This is a simplified calculation
+    // In a real app, you would compare with previous period
+    return 5.2; // Placeholder
+  };
+  
+  const calculateOrdersChange = (orders, timeRange) => {
+    // This is a simplified calculation
+    // In a real app, you would compare with previous period
+    return 3.8; // Placeholder
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

@@ -1,5 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { restaurant as restaurantService } from '../../services/api';
+import { uploadImage } from '../../services/ImageService';
+
+
+// const uploadImage = async (file) => {
+//   const uploadedUrl = await uploadImage(file);
+//   return uploadedUrl;
+// };
 
 // Async thunks for restaurant operations
 export const fetchRestaurants = createAsyncThunk(
@@ -72,18 +79,31 @@ export const createMenuItem = createAsyncThunk(
   'restaurants/createMenuItem',
   async ({ restaurantId, menuItemData }, { rejectWithValue }) => {
     try {
-      // Check if menuItemData is FormData
-      if (menuItemData instanceof FormData) {
+      console.log('Creating menu item with data:', menuItemData);
+      
+      // If we have an imageUrl from our ImageService, use it directly
+      if (menuItemData.imageUrl) {
+        console.log('Using provided imageUrl:', menuItemData.imageUrl);
+        // It's a regular object with imageUrl already set
+        const dataToSend = { ...menuItemData, restaurantId };
+        const response = await restaurantService.createMenuItem(dataToSend);
+        return response.data;
+      }
+      // Check if menuItemData is FormData (legacy approach)
+      else if (menuItemData instanceof FormData) {
+        console.log('Using FormData for menu item creation');
         // FormData is already properly set up in the component
         const response = await restaurantService.createMenuItem(menuItemData);
         return response.data; // Return the newly created menu item
       } else {
-        // Handle case where it's a regular object
+        // Handle case where it's a regular object without imageUrl
+        console.log('Using regular object for menu item creation');
         const dataToSend = { ...menuItemData, restaurantId };
         const response = await restaurantService.createMenuItem(dataToSend);
         return response.data;
       }
     } catch (error) {
+      console.error('Error creating menu item:', error);
       return rejectWithValue(
         error.response?.data?.message || 'Failed to create menu item.'
       );
@@ -96,16 +116,31 @@ export const updateMenuItem = createAsyncThunk(
   'restaurants/updateMenuItem',
   async ({ id, menuItemData }, { rejectWithValue }) => {
     try {
-      // Check if menuItemData is FormData
-      if (menuItemData instanceof FormData) {
-        // FormData is already properly set up in the component
-        const response = await restaurantService.updateMenuItem(id, menuItemData);
-        return response.data; // Return the updated menu item
-      } else {
-        // Handle case where it's a regular object
-        const response = await restaurantService.updateMenuItem(id, menuItemData);
-        return response.data;
+      console.log('Updating menu item with data:', { id, menuItemData });
+      
+      let finalData = { ...menuItemData };
+      
+      // Handle image upload if present
+      if (menuItemData.image instanceof File) {
+        try {
+          console.log('Uploading image file...');
+          const uploadedUrl = await uploadImage(menuItemData.image);
+          finalData = {
+            ...finalData,
+            imageUrl: uploadedUrl,
+          };
+          delete finalData.image; // Remove the file object
+        } catch (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          return rejectWithValue('Failed to upload image. Please try again.');
+        }
       }
+
+      // Make the API call to update the menu item
+      console.log('Sending update request with data:', finalData);
+      const response = await restaurantService.updateMenuItem(id, finalData);
+      return response.data;
+      
     } catch (error) {
       console.error('Error updating menu item:', error);
       return rejectWithValue(
@@ -125,6 +160,28 @@ export const deleteMenuItem = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to delete menu item.'
+      );
+    }
+  }
+);
+
+// Async thunk for updating restaurant details
+export const updateRestaurant = createAsyncThunk(
+  'restaurants/updateRestaurant',
+  async ({ id, restaurantData }, { rejectWithValue }) => {
+    try {
+      // Check if restaurantData is FormData
+      if (restaurantData instanceof FormData) {
+        const response = await restaurantService.updateRestaurant(id, restaurantData);
+        return response.data;
+      } else {
+        // Handle case where it's a regular object
+        const response = await restaurantService.updateRestaurant(id, restaurantData);
+        return response.data;
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update restaurant details.'
       );
     }
   }
@@ -243,13 +300,16 @@ const restaurantSlice = createSlice({
       .addCase(updateMenuItem.fulfilled, (state, action) => {
         state.loading = false;
         // Update the menu item in the current restaurant's menu if loaded
-        if (state.currentRestaurant && state.currentRestaurant.menuItems) {
-          const index = state.currentRestaurant.menuItems.findIndex(
-            (item) => item.id === action.payload.id
-          );
-          if (index !== -1) {
-            state.currentRestaurant.menuItems[index] = action.payload;
-          }
+        if (state.currentRestaurant?.menuItems) {
+            const index = state.currentRestaurant.menuItems.findIndex(
+                (item) => item.id === action.payload.id
+            );
+            if (index !== -1) {
+                state.currentRestaurant.menuItems[index] = {
+                    ...state.currentRestaurant.menuItems[index],
+                    ...action.payload
+                };
+            }
         }
       })
       .addCase(updateMenuItem.rejected, (state, action) => {
@@ -274,6 +334,30 @@ const restaurantSlice = createSlice({
       .addCase(deleteMenuItem.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to delete menu item';
+      })
+      
+      // Update restaurant
+      .addCase(updateRestaurant.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateRestaurant.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the current restaurant if it matches
+        if (state.currentRestaurant && state.currentRestaurant.id === action.payload.id) {
+          state.currentRestaurant = {
+            ...state.currentRestaurant,
+            ...action.payload
+          };
+        }
+        // Update in the restaurants list if present
+        state.restaurants = state.restaurants.map(restaurant => 
+          restaurant.id === action.payload.id ? { ...restaurant, ...action.payload } : restaurant
+        );
+      })
+      .addCase(updateRestaurant.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Something went wrong';
       });
   },
 });

@@ -161,123 +161,84 @@ const MenuPage = ({ categoriesView = false, newItem = false }) => {
     setIsSubmitting(true);
     setFormError(null);
     
-    // Prepare form data for API
-    const apiData = new FormData();
+    console.log('Form data received from MenuForm:', formData);
     
-    // Add all form fields to FormData
-    Object.keys(formData).forEach(key => {
-      if (key === 'image' && formData[key]) {
-        apiData.append('image', formData[key]);
-      } else if (key !== 'image' || formData[key] !== null) {
-        // Convert boolean values to strings for FormData
-        if (typeof formData[key] === 'boolean') {
-          apiData.append(key, formData[key].toString());
-        } else {
-          apiData.append(key, formData[key]);
-        }
-      }
-    });
+    if (!formData.name) {
+        setFormError('Item name is required');
+        setIsSubmitting(false);
+        return;
+    }
     
-    // Log the form data for debugging
-    console.log('Form data being sent:');
-    for (let pair of apiData.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
+    if (!formData.category) {
+        setFormError('Category is required');
+        setIsSubmitting(false);
+        return;
+    }
+    
+    if (!formData.price || isNaN(formData.price)) {
+        setFormError('Valid price is required');
+        setIsSubmitting(false);
+        return;
     }
     
     // If editing, include the item ID
     if (currentItem) {
-      // Make sure required fields are present
-      if (!apiData.get('name')) {
-        setFormError('Item name is required');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      if (!apiData.get('category')) {
-        setFormError('Category is required');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      if (!apiData.get('price')) {
-        setFormError('Price is required');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Include the ID and restaurantId in the form data
-      apiData.append('id', currentItem.id);
-      apiData.append('restaurantId', restaurantId);
-      
-      // Log the form data for debugging
-      console.log('Updating menu item with ID:', currentItem.id, 'for restaurant:', restaurantId);
-      for (let pair of apiData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-      }
-      
-      // Update existing item
-      dispatch(updateMenuItem({ id: currentItem.id, menuItemData: apiData }))
-        .unwrap()
-        .then(updatedItem => {
-          toast.success('Menu item updated successfully');
-          // Update the item in the local state
-          setMenuItems(prevItems => 
-            prevItems.map(item => 
-              item.id === updatedItem.id ? updatedItem : item
-            )
-          );
-          handleModalClose();
-        })
-        .catch(error => {
-          console.error('Error updating menu item:', error);
-          setFormError(error || 'Failed to update menu item. Please try again.');
-        })
-        .finally(() => {
-          setIsSubmitting(false);
-        });
+        // Create the data object with all necessary fields
+        const menuItemData = {
+            ...formData,
+            restaurantId: restaurantId
+        };
+        
+        console.log('Updating menu item with data:', menuItemData);
+        
+        // Update existing item - pass both id and menuItemData
+        dispatch(updateMenuItem({ 
+            id: currentItem.id, 
+            menuItemData: menuItemData 
+        }))
+            .unwrap()
+            .then(updatedItem => {
+                toast.success('Menu item updated successfully');
+                // Update the item in the local state
+                setMenuItems(prevItems => 
+                    prevItems.map(item => 
+                        item.id === updatedItem.id ? updatedItem : item
+                    )
+                );
+                handleModalClose();
+            })
+            .catch(error => {
+                console.error('Error updating menu item:', error);
+                setFormError(error?.message || 'Failed to update menu item. Please try again.');
+            })
+            .finally(() => {
+                setIsSubmitting(false);
+            });
     } else {
-      // Create new item
-      // Ensure the restaurant ID is included
-      apiData.append('restaurantId', restaurantId);
-      
-      // Make sure required fields are present
-      if (!apiData.get('name')) {
-        setFormError('Item name is required');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      if (!apiData.get('category')) {
-        setFormError('Category is required');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      if (!apiData.get('price')) {
-        setFormError('Price is required');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      dispatch(createMenuItem({ restaurantId, menuItemData: apiData }))
-        .unwrap()
-        .then(newItem => {
-          toast.success('Menu item added successfully');
-          // Add the new item to the local state
-          // Instead of directly updating the state, refresh the restaurant details
-          // This ensures we have consistent state from the backend
-          dispatch(fetchRestaurantDetails({ id: restaurantId, isDashboard: true }));
-          handleModalClose();
-        })
-        .catch(error => {
-          console.error('Error creating menu item:', error);
-          setFormError(error || 'Failed to create menu item. Please try again.');
-        })
-        .finally(() => {
-          setIsSubmitting(false);
-        });
+        // Create new item
+        const menuItemData = {
+            ...formData,
+            restaurantId: restaurantId
+        };
+        
+        console.log('Creating new menu item with data:', menuItemData);
+        
+        dispatch(createMenuItem({ restaurantId, menuItemData }))
+            .unwrap()
+            .then(newItem => {
+                toast.success('Menu item added successfully');
+                dispatch(fetchRestaurantDetails({ id: restaurantId, isDashboard: true }));
+                handleModalClose();
+            })
+            .catch(error => {
+                console.error('Error creating menu item:', error);
+                setFormError(error?.message || 'Failed to create menu item. Please try again.');
+            })
+            .finally(() => {
+                setIsSubmitting(false);
+            });
     }
-  };
+};
   
   // Handle search input change
   const handleSearchChange = (e) => {
